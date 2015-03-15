@@ -8,7 +8,8 @@ import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-
+import java.sql.*;
+import com.mysql.jdbc.Driver ;
 
 import javax.servlet.Servlet;
 
@@ -17,7 +18,6 @@ import javax.servlet.Servlet;
  */
 public class Main {
     public static void main(String[] args) throws Exception {
-
 
         Server server = new Server(8081);
         ServletContextHandler context =
@@ -40,6 +40,7 @@ public class Main {
         handlers.setHandlers(new Handler[]{resource_handler, context});
 
         server.setHandler(handlers);
+
 
         server.start();
         server.join();
