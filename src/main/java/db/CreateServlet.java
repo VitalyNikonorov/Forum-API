@@ -17,7 +17,10 @@ public class CreateServlet extends HttpServlet {
     public void doGet(HttpServletRequest request,
                       HttpServletResponse response) throws ServletException, IOException {
 
+        String status = request.getParameter("status");
+
         Map<String, Object> pageVariables = new HashMap<>();
+        pageVariables.put("status", status);
         response.getWriter().println(PageGenerator.getPage("Index.html", pageVariables));
     }
 
