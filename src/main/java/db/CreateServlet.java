@@ -31,7 +31,7 @@ public class CreateServlet extends HttpServlet {
             DriverManager.registerDriver(new com.mysql.jdbc.Driver());
 
             connection = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/testdb","root", "");
+                    "jdbc:mysql://localhost:3306/testdb","test", "test");
 
             Statement sqlQuery = connection.createStatement();
             ResultSet rs = null;

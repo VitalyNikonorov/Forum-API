@@ -9,7 +9,7 @@ import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import java.sql.*;
-import com.mysql.jdbc.Driver ;
+import com.mysql.jdbc.Driver;
 
 import javax.servlet.Servlet;
 
