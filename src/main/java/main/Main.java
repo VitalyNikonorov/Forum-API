@@ -1,6 +1,7 @@
 package main;
 
 import admin.AdminPageServlet;
+import db.ClearServlet;
 import db.CreateServlet;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -25,10 +26,12 @@ public class Main {
 
 
         Servlet createForum = (Servlet) new CreateServlet();
+        Servlet clear = new ClearServlet();
         Servlet AdminPage = new AdminPageServlet();
 
         System.out.append("Starting at port: ").append(String.valueOf(8081)).append('\n');
         context.addServlet(new ServletHolder(createForum), "/db/api/forum/create");
+        context.addServlet(new ServletHolder(clear), "/db/api/clear");
         context.addServlet(new ServletHolder(AdminPage), "/admin");
 
 
