@@ -41,6 +41,9 @@
     <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-security:9.3.0.M0" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-rewrite:9.3.0.M0" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-client:9.3.0.M0" level="project" />
+    <orderEntry type="library" name="Maven: com.googlecode.json-simple:json-simple:1.1.1" level="project" />
+    <orderEntry type="library" name="Maven: junit:junit:4.10" level="project" />
+    <orderEntry type="library" name="Maven: org.hamcrest:hamcrest-core:1.1" level="project" />
     <orderEntry type="library" name="Maven: mysql:mysql-connector-java:5.1.6" level="project" />
   </component>
 </module>
