@@ -4,14 +4,17 @@ import admin.AdminPageServlet;
 import db.ClearServlet;
 import db.forum.CreateForumServlet;
 import db.user.CreateUserServlet;
+import db.user.GetUserDetailsServlet;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import temletor.SqlWrapper;
 
 import javax.servlet.Servlet;
+import java.sql.*;
 
 /**
  * Created by Виталий on 15.03.2015.
@@ -21,10 +24,34 @@ public class Main {
 
         Server server = new Server(8081);
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        Connection connection = null;
 
+        // DATABASE
+
+        try {
+            DriverManager.registerDriver(new com.mysql.jdbc.Driver());
+            connection = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/testdb","test", "test");
+            Statement sqlQuery = connection.createStatement();
+        }
+        catch (SQLException ex){
+            System.out.println("SQLException caught");
+            System.out.println("---");
+            while ( ex != null ){
+                System.out.println("Message   : " + ex.getMessage());
+                System.out.println("SQLState  : " + ex.getSQLState());
+                System.out.println("ErrorCode : " + ex.getErrorCode());
+                System.out.println("---");
+                ex = ex.getNextException();
+            }
+        }
+        catch (Exception ex){
+            System.out.println("Other Error in Main.");
+        }
+        //Database!!!!
 
         Servlet clear = new ClearServlet();
-        Servlet AdminPage = new AdminPageServlet();
+        Servlet AdminPage = new AdminPageServlet(connection);
 
         System.out.append("Starting at port: ").append(String.valueOf(8081)).append('\n');
         context.addServlet(new ServletHolder(clear), "/db/api/clear");
@@ -39,10 +66,12 @@ public class Main {
 
         //USER
             //SERVLETS
-        Servlet createUser = (Servlet) new CreateUserServlet();
+        Servlet createUser = new CreateUserServlet(connection);
+        Servlet getUserDetails = new GetUserDetailsServlet(connection);
             //CONTEXT
         context.addServlet(new ServletHolder(createUser), "/db/api/user/create");
 
+        //Static
         ResourceHandler resource_handler = new ResourceHandler();
         resource_handler.setDirectoriesListed(true);
         resource_handler.setResourceBase("static");

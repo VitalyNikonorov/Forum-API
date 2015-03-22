@@ -1,58 +1,34 @@
 package db.user;
 
-
 import org.json.JSONObject;
 import temletor.SqlWrapper;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
+import javax.servlet.ServletException;
 import java.io.IOException;
 import java.sql.*;
-
-
-import java.text.ParseException;
 import java.util.HashMap;
-
 import java.util.Map;
-import java.util.Objects;
 
 /**
- * Created by Виталий on 15.03.2015.
+ * Created by Виталий on 22.03.2015.
  */
-public class CreateUserServlet extends HttpServlet {
+public class GetUserDetailsServlet extends HttpServlet {
     private Connection connection;
-    public CreateUserServlet(Connection connection){ this.connection = connection; }
+    public GetUserDetailsServlet(Connection connection){ this.connection = connection; }
 
-    public void doPost(HttpServletRequest request,
-                       HttpServletResponse response) throws ServletException, IOException {
-
-        StringBuffer jb = new StringBuffer();
-        String line = null;
-        try {
-            BufferedReader reader = request.getReader();
-            while ((line = reader.readLine()) != null)
-                jb.append(line);
-        } catch (Exception e) { /*report an error*/ }
-
-        JSONObject jsonObject = new JSONObject(jb.toString());
-        JSONObject jsonResponse = new JSONObject();
+ /*   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String userEmail = request.getParameter("user");
         Map<String, Object> responseMap =  new HashMap<>();
-
-        if (!jsonObject.has("isAnonymous")){
-            jsonObject.put("isAnonymous", "false");
-        }
+        JSONObject jsonResponse = new JSONObject();
+        jsonResponse.put("code", 0);
 
 
         // Database
+        Connection connection = null;
         try {
-            DriverManager.registerDriver(new com.mysql.jdbc.Driver());
-
-            connection = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/testdb","test", "test");
-
             Statement sqlQuery = connection.createStatement();
             ResultSet rs = null;
 
@@ -97,7 +73,7 @@ public class CreateUserServlet extends HttpServlet {
         }
         //Database!!!!
 
-        response.getWriter().println(jsonResponse);
-    }
 
+        response.getWriter().println();
+    }*/
 }
