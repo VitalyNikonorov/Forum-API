@@ -1,80 +1,47 @@
 package db.user;
 
-import temletor.PageGenerator;
 
+import org.json.JSONObject;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.*;
+
+
+import java.text.ParseException;
 import java.util.HashMap;
+
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Created by Виталий on 15.03.2015.
  */
 public class CreateUserServlet extends HttpServlet {
-    /*
-    public void doGet(HttpServletRequest request,
-                      HttpServletResponse response) throws ServletException, IOException {
-
-        String status = request.getParameter("status");
-
-        Map<String, Object> pageVariables = new HashMap<>();
-        pageVariables.put("status", status);
-
-        Connection connection = null ;
-
-
-                    // Database
-        try {
-            DriverManager.registerDriver(new com.mysql.jdbc.Driver());
-
-            connection = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/testdb","test", "test");
-
-            Statement sqlQuery = connection.createStatement();
-            ResultSet rs = null;
-
-            sqlQuery.executeUpdate("INSERT INTO user VALUES ('1','Me','22');");
-
-            rs.close(); rs=null;
-            connection.close();
-        }
-        catch (SQLException ex){
-            System.out.println("SQLException caught");
-            System.out.println("---");
-            while ( ex != null ){
-                System.out.println("Message   : " + ex.getMessage());
-                System.out.println("SQLState  : " + ex.getSQLState());
-                System.out.println("ErrorCode : " + ex.getErrorCode());
-                System.out.println("---");
-                ex = ex.getNextException();
-            }
-        }
-        catch (Exception ex){
-            System.out.println("Other Error in Main.");
-        }
-                       //Database!!!!
-
-
-        response.getWriter().println(PageGenerator.getPage("Index.html", pageVariables));
-    }
-*/
 
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
 
-        String username = request.getParameter("username");
-        String about = request.getParameter("about");
-        String name = request.getParameter("name");
-        String email = request.getParameter("email");
-        String isAnonimus = request.getParameter("isAnonimus");
+        StringBuffer jb = new StringBuffer();
+        String line = null;
+        try {
+            BufferedReader reader = request.getReader();
+            while ((line = reader.readLine()) != null)
+                jb.append(line);
+        } catch (Exception e) { /*report an error*/ }
 
-        Map<String, Object> pageVariables = new HashMap<>();
+        JSONObject jsonObject = new JSONObject(jb.toString());
+        JSONObject jsonResponse = new JSONObject();
+        Map<String, Object> responseMap =  new HashMap<>();;
+
+        if (!jsonObject.has("isAnonymous")){
+            jsonObject.put("isAnonymous", "false");
+        }
+
         Connection connection = null ;
-
         // Database
         try {
             DriverManager.registerDriver(new com.mysql.jdbc.Driver());
@@ -87,31 +54,25 @@ public class CreateUserServlet extends HttpServlet {
 
             String queryStr;
 
-            if (isAnonimus != null) {
-                queryStr = "INSERT INTO user VALUES ('" +name+ "', '" +username+ "', '"+email+"', " +about+ "'"+ ", '" +isAnonimus+ "');";
-            }else{
-                queryStr = "INSERT INTO user VALUES ('" +name+ "', '" +username+ "', '"+email+"', " +about+ "');";
-            }
+
+            queryStr = "INSERT INTO user (name, username, email, about, isAnonymous) VALUES (\'" +jsonObject.get("name")+ "\', \'" +jsonObject.get("username")+ "\', \'"+jsonObject.get("email")+"\', \'" +jsonObject.get("about")+ "\'"+ ", \'" +jsonObject.get("isAnonymous")+ "\');";
             sqlQuery.executeUpdate(queryStr);
 
-            String sqlSelect = "SELECT * FROM user WHERE email="+email;
+            String sqlSelect = "SELECT * FROM user WHERE email=\'" +jsonObject.get("email")+ "\'";
             rs = sqlQuery.executeQuery(sqlSelect);
 
             while(rs.next()){
-                //Retrieve by column name
-                int id  = rs.getInt("id");
-                name = rs.getString("name");
-                username = rs.getString("username");
-                email = rs.getString("email");
-                isAnonimus = rs.getString("isAnonimous");
                 //Display values
-                System.out.print("ID: " + id);
-                System.out.print("name: " + name);
-                System.out.print("username: " + username);
-                System.out.print("email: " + email);
-                System.out.print("isAnonimous: " + isAnonimus);
+                responseMap.put("about", rs.getString("about"));
+                responseMap.put("email", rs.getString("email"));
+                responseMap.put("id", new Integer(rs.getString("id")));
+                responseMap.put("isAnonymous", new Boolean(rs.getString("isAnonymous")));
+                responseMap.put("name", rs.getString("name"));
+                responseMap.put("username", rs.getString("username"));
             }
 
+            jsonResponse.put("code", 0);
+            jsonResponse.put("response", responseMap);
             rs.close(); rs=null;
             connection.close();
         }
@@ -127,11 +88,11 @@ public class CreateUserServlet extends HttpServlet {
             }
         }
         catch (Exception ex){
-            System.out.println("Other Error in Main.");
+            System.out.println("Other Error in CreateUserServlet.");
         }
         //Database!!!!
 
-        response.getWriter().println(PageGenerator.getPage("Index.html", pageVariables));
+        response.getWriter().println(jsonResponse);
     }
 
 }
