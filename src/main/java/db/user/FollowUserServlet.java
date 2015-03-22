@@ -1,35 +1,63 @@
 package db.user;
 
 import org.json.JSONObject;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.ServletException;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Created by Виталий on 22.03.2015.
  */
-public class GetUserDetailsServlet extends HttpServlet {
+public class FollowUserServlet extends HttpServlet {
     private Connection connection;
-    public GetUserDetailsServlet(Connection connection){ this.connection = connection; }
+    public FollowUserServlet(Connection connection){ this.connection = connection; }
 
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    public void doPost(HttpServletRequest request,
+                       HttpServletResponse response) throws ServletException, IOException {
 
-        String userEmail = request.getParameter("user");
+        StringBuffer jb = new StringBuffer();
+        String line = null;
         Map<String, Object> responseMap =  new HashMap<>();
         JSONObject jsonResponse = new JSONObject();
+
+        try {
+            BufferedReader reader = request.getReader();
+            while ((line = reader.readLine()) != null)
+                jb.append(line);
+        } catch (Exception e) { /*report an error*/ }
+
+        JSONObject jsonObject = new JSONObject(jb.toString());
 
         // Database
         try {
             Statement sqlQuery = connection.createStatement();
             ResultSet rs = null;
 
-            String sqlSelect = "SELECT * FROM user WHERE email=\'" +userEmail+ "\'";
+            String queryStr;
+            int id1=0, id2=0;
+            rs = sqlQuery.executeQuery("SELECT id FROM user WHERE email=\'" +jsonObject.get("follower")+ "\';");
+            while(rs.next()){
+                //get id
+                id1 = new Integer(rs.getString("id"));
+            }
+
+            rs = sqlQuery.executeQuery("SELECT id FROM user WHERE email=\'" +jsonObject.get("followee")+ "\';");
+            while(rs.next()){
+                //get id
+                id2 = new Integer(rs.getString("id"));
+            }
+
+            queryStr = "INSERT INTO follow VALUES ( " +id1+ ", " +id2+ " );";
+            sqlQuery.executeUpdate(queryStr);
+
+            //Response JSON
+            String sqlSelect = "SELECT * FROM user WHERE email=\'" +jsonObject.get("follower")+ "\'";
             rs = sqlQuery.executeQuery(sqlSelect);
 
             while(rs.next()){
@@ -44,7 +72,7 @@ public class GetUserDetailsServlet extends HttpServlet {
 
             //following
             String[] following;
-            sqlSelect = "SELECT Res.email FROM user R LEFT JOIN follow Fol ON R.id=Fol.id1 JOIN user Res ON Fol.id2=Res.id WHERE R.id=" + responseMap.get("id")+ ";";
+            sqlSelect = "SELECT Res.email FROM user R LEFT JOIN follow Fol ON R.id=Fol.id1 JOIN user Res ON Fol.id2=Res.id WHERE R.id=" + responseMap.get("id") +";";
             rs = sqlQuery.executeQuery(sqlSelect);
             int size= 0;
             if (rs != null)
@@ -64,7 +92,7 @@ public class GetUserDetailsServlet extends HttpServlet {
 
             //followers
             String[] followers;
-            sqlSelect = "SELECT Res.email FROM user R LEFT JOIN follow Fol ON R.id=Fol.id2 JOIN user Res ON Fol.id1=Res.id WHERE R.id=" + responseMap.get("id") + ";";
+            sqlSelect = "SELECT Res.email FROM user R LEFT JOIN follow Fol ON R.id=Fol.id2 JOIN user Res ON Fol.id1=Res.id WHERE R.id=" + responseMap.get("id") +";";
             rs = sqlQuery.executeQuery(sqlSelect);
             size= 0;
             if (rs != null)
@@ -83,8 +111,8 @@ public class GetUserDetailsServlet extends HttpServlet {
             }
 
             //subscriptions
-
-            sqlSelect = "SELECT Sub.threadId FROM user R LEFT JOIN subscribe Sub ON R.id=Sub.userid WHERE R.id=" + responseMap.get("id") + ";";
+            int[] subscriptions;
+            sqlSelect = "SELECT Sub.threadId FROM user R LEFT JOIN subscribe Sub ON R.id=Sub.userid WHERE R.id=" + responseMap.get("id") +";";
             rs = sqlQuery.executeQuery(sqlSelect);
             size= 0;
             if (rs != null)
@@ -93,24 +121,13 @@ public class GetUserDetailsServlet extends HttpServlet {
                 rs.last();
                 size = rs.getRow();
             }
-            
-            if (size != 0) {
-                subscriptions = new int[size];
-                rs.beforeFirst();
-                i = 0;
-                while (rs.next()) {
-                    //Parse values
-                    subscriptions[i] = new Integer(rs.getString("threadId"));
-                    i++;
-                }
-            }else{
-                subscriptions = new String[size];
-                i = 0;
-                while(rs.next()){
-                    //Parse values
-                    subscriptions[i]=rs.getString("email");
-                    i++;
-                }
+            subscriptions = new int[size];
+            rs.beforeFirst();
+            i = 0;
+            while(rs.next()){
+                //Parse values
+                subscriptions[i] = new Integer(rs.getString("threadId"));
+                i++;
             }
 
             responseMap.put("following", following);
@@ -133,9 +150,11 @@ public class GetUserDetailsServlet extends HttpServlet {
             }
         }
         catch (Exception ex){
-            System.out.println("Other Error in DetailsUserServlet.");
+            System.out.println("Other Error in FollowUserServlet.");
         }
         //Database!!!!
+
         response.getWriter().println(jsonResponse);
     }
+
 }

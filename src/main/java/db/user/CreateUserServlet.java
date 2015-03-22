@@ -48,11 +48,6 @@ public class CreateUserServlet extends HttpServlet {
 
         // Database
         try {
-            DriverManager.registerDriver(new com.mysql.jdbc.Driver());
-
-            connection = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/testdb","test", "test");
-
             Statement sqlQuery = connection.createStatement();
             ResultSet rs = null;
 
@@ -79,7 +74,6 @@ public class CreateUserServlet extends HttpServlet {
             jsonResponse.put("code", 0);
             jsonResponse.put("response", responseMap);
             rs.close(); rs=null;
-            connection.close();
         }
         catch (SQLException ex){
             System.out.println("SQLException caught");

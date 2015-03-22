@@ -4,6 +4,7 @@ import admin.AdminPageServlet;
 import db.ClearServlet;
 import db.forum.CreateForumServlet;
 import db.user.CreateUserServlet;
+import db.user.FollowUserServlet;
 import db.user.GetUserDetailsServlet;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -68,8 +69,11 @@ public class Main {
             //SERVLETS
         Servlet createUser = new CreateUserServlet(connection);
         Servlet getUserDetails = new GetUserDetailsServlet(connection);
+        Servlet followUser = new FollowUserServlet(connection);
             //CONTEXT
         context.addServlet(new ServletHolder(createUser), "/db/api/user/create");
+        context.addServlet(new ServletHolder(getUserDetails), "/db/api/user/details");
+        context.addServlet(new ServletHolder(followUser), "/db/api/user/follow");
 
         //Static
         ResourceHandler resource_handler = new ResourceHandler();
@@ -86,3 +90,5 @@ public class Main {
         server.join();
     }
 }
+
+/*В бд follower id1 - кто подписан, id2 - на кого*/
