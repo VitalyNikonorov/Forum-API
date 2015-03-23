@@ -76,9 +76,10 @@ public class UserListPostsServlet extends HttpServlet {
                 subSqlSelect = "SELECT COUNT(id) AS likes FROM likes L JOIN user U ON L.userid=U.id WHERE L.postid=" + listOfResponseMap.get(j).get("id") +";";
 
                 rsSub = sqlQuery.executeQuery(subSqlSelect);
-
+                int likes = 0, dislikes = 0;
                 while(rsSub.next()){
-                    listOfResponseMap.get(j).put("likes", new Integer(rsSub.getString("likes")));
+                    likes = new Integer(rsSub.getString("likes"));
+                    listOfResponseMap.get(j).put("likes", likes);
                 }
 
                 //dislikes
@@ -86,8 +87,10 @@ public class UserListPostsServlet extends HttpServlet {
                 rsSub = sqlQuery.executeQuery(subSqlSelect);
 
                 while(rsSub.next()){
-                    listOfResponseMap.get(j).put("dislikes", new Integer(rsSub.getString("dislikes")));
+                    dislikes = new Integer(rsSub.getString("dislikes"));
+                    listOfResponseMap.get(j).put("dislikes", dislikes);
                 }
+                listOfResponseMap.get(j).put("points", (likes-dislikes));
             }
 
 

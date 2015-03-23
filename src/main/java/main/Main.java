@@ -10,8 +10,6 @@ import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import temletor.SqlWrapper;
-
 import javax.servlet.Servlet;
 import java.sql.*;
 
@@ -71,6 +69,8 @@ public class Main {
         Servlet listFollowers = new UserListFollowersServlet(connection);
         Servlet listFollowing = new UserListFollowingServlet(connection);
         Servlet listPosts = new UserListPostsServlet(connection);
+        Servlet unfollowUser = new UnfollowUserServlet(connection);
+        Servlet updateProfile = new UpdateProfileServlet(connection);
             //CONTEXT
         context.addServlet(new ServletHolder(createUser), "/db/api/user/create/");
         context.addServlet(new ServletHolder(getUserDetails), "/db/api/user/details/");
@@ -78,6 +78,8 @@ public class Main {
         context.addServlet(new ServletHolder(listFollowers), "/db/api/user/listFollowers/");
         context.addServlet(new ServletHolder(listFollowing), "/db/api/user/listFollowing/");
         context.addServlet(new ServletHolder(listPosts), "/db/api/user/listPosts/");
+        context.addServlet(new ServletHolder(unfollowUser), "/db/api/user/unfollow/");
+        context.addServlet(new ServletHolder(updateProfile), "/db/api/user/updateProfile/");
 
         //Static
         ResourceHandler resource_handler = new ResourceHandler();
