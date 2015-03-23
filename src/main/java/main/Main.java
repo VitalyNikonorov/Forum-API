@@ -3,9 +3,7 @@ package main;
 import admin.AdminPageServlet;
 import db.ClearServlet;
 import db.forum.CreateForumServlet;
-import db.user.CreateUserServlet;
-import db.user.FollowUserServlet;
-import db.user.GetUserDetailsServlet;
+import db.user.*;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.HandlerList;
@@ -55,14 +53,14 @@ public class Main {
         Servlet AdminPage = new AdminPageServlet(connection);
 
         System.out.append("Starting at port: ").append(String.valueOf(8081)).append('\n');
-        context.addServlet(new ServletHolder(clear), "/db/api/clear");
+        context.addServlet(new ServletHolder(clear), "/db/api/clear/");
         context.addServlet(new ServletHolder(AdminPage), "/admin");
 
         //FORUM
             //SERVLETS
         Servlet createForum = (Servlet) new CreateForumServlet();
             //context
-        context.addServlet(new ServletHolder(createForum), "/db/api/forum/create");
+        context.addServlet(new ServletHolder(createForum), "/db/api/forum/create/");
 
 
         //USER
@@ -70,10 +68,14 @@ public class Main {
         Servlet createUser = new CreateUserServlet(connection);
         Servlet getUserDetails = new GetUserDetailsServlet(connection);
         Servlet followUser = new FollowUserServlet(connection);
+        Servlet listFollowers = new UserListFollowersServlet(connection);
+        Servlet listFollowing = new UserListFollowingServlet(connection);
             //CONTEXT
-        context.addServlet(new ServletHolder(createUser), "/db/api/user/create");
-        context.addServlet(new ServletHolder(getUserDetails), "/db/api/user/details");
-        context.addServlet(new ServletHolder(followUser), "/db/api/user/follow");
+        context.addServlet(new ServletHolder(createUser), "/db/api/user/create/");
+        context.addServlet(new ServletHolder(getUserDetails), "/db/api/user/details/");
+        context.addServlet(new ServletHolder(followUser), "/db/api/user/follow/");
+        context.addServlet(new ServletHolder(listFollowers), "/db/api/user/listFollowers/");
+        context.addServlet(new ServletHolder(listFollowing), "/db/api/user/listFollowing/");
 
         //Static
         ResourceHandler resource_handler = new ResourceHandler();
