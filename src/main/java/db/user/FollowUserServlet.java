@@ -72,7 +72,7 @@ public class FollowUserServlet extends HttpServlet {
 
             //following
             String[] following;
-            sqlSelect = "SELECT Res.email FROM user R LEFT JOIN follow Fol ON R.id=Fol.id1 JOIN user Res ON Fol.id2=Res.id WHERE R.id=" + responseMap.get("id") +";";
+            sqlSelect = "SELECT Res.email FROM follow Fol LEFT JOIN user R ON R.id=Fol.id1 JOIN user Res ON Fol.id2=Res.id WHERE R.id=" + responseMap.get("id")+ ";";
             rs = sqlQuery.executeQuery(sqlSelect);
             int size= 0;
             if (rs != null)
@@ -92,7 +92,7 @@ public class FollowUserServlet extends HttpServlet {
 
             //followers
             String[] followers;
-            sqlSelect = "SELECT Res.email FROM user R LEFT JOIN follow Fol ON R.id=Fol.id2 JOIN user Res ON Fol.id1=Res.id WHERE R.id=" + responseMap.get("id") +";";
+            sqlSelect = "SELECT Res.email FROM follow Fol LEFT JOIN user R ON R.id=Fol.id2 JOIN user Res ON Fol.id1=Res.id WHERE R.id=" + responseMap.get("id") + ";";
             rs = sqlQuery.executeQuery(sqlSelect);
             size= 0;
             if (rs != null)
@@ -111,8 +111,8 @@ public class FollowUserServlet extends HttpServlet {
             }
 
             //subscriptions
-            int[] subscriptions;
-            sqlSelect = "SELECT Sub.threadId FROM user R LEFT JOIN subscribe Sub ON R.id=Sub.userid WHERE R.id=" + responseMap.get("id") +";";
+
+            sqlSelect = "SELECT Sub.threadId FROM subscribe Sub LEFT JOIN user R ON R.id=Sub.userid WHERE R.id=" + responseMap.get("id") + ";";
             rs = sqlQuery.executeQuery(sqlSelect);
             size= 0;
             if (rs != null)
@@ -121,18 +121,21 @@ public class FollowUserServlet extends HttpServlet {
                 rs.last();
                 size = rs.getRow();
             }
-            subscriptions = new int[size];
+
+
+            int[] subscriptions = new int[size];
             rs.beforeFirst();
             i = 0;
-            while(rs.next()){
+            while (rs.next()) {
                 //Parse values
                 subscriptions[i] = new Integer(rs.getString("threadId"));
                 i++;
             }
+            responseMap.put("subscriptions", subscriptions);
 
             responseMap.put("following", following);
             responseMap.put("followers", followers);
-            responseMap.put("subscriptions", subscriptions);
+
 
             jsonResponse.put("code", 0);
             jsonResponse.put("response", responseMap);
