@@ -70,12 +70,14 @@ public class Main {
         Servlet followUser = new FollowUserServlet(connection);
         Servlet listFollowers = new UserListFollowersServlet(connection);
         Servlet listFollowing = new UserListFollowingServlet(connection);
+        Servlet listPosts = new UserListPostsServlet(connection);
             //CONTEXT
         context.addServlet(new ServletHolder(createUser), "/db/api/user/create/");
         context.addServlet(new ServletHolder(getUserDetails), "/db/api/user/details/");
         context.addServlet(new ServletHolder(followUser), "/db/api/user/follow/");
         context.addServlet(new ServletHolder(listFollowers), "/db/api/user/listFollowers/");
         context.addServlet(new ServletHolder(listFollowing), "/db/api/user/listFollowing/");
+        context.addServlet(new ServletHolder(listPosts), "/db/api/user/listPosts/");
 
         //Static
         ResourceHandler resource_handler = new ResourceHandler();
