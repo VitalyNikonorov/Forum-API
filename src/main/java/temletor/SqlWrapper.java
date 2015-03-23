@@ -7,7 +7,7 @@ import org.json.JSONObject;
  */
 public class SqlWrapper {
     public static String getInsertQuery(String table, String[] params, JSONObject jsonObj) {
-        String response = "INSERT INTO " +table+ "( ";
+        String response = "INSERT INTO " +table+ " ( ";
         for (int i=0; i<params.length-1; i++){
             response = response +params[i]+ ", ";
         }

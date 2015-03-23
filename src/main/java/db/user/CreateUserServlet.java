@@ -3,7 +3,6 @@ package db.user;
 
 import org.json.JSONObject;
 import temletor.SqlWrapper;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -11,13 +10,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.*;
-
-
-import java.text.ParseException;
 import java.util.HashMap;
-
 import java.util.Map;
-import java.util.Objects;
+
 
 /**
  * Created by Виталий on 15.03.2015.

@@ -3,6 +3,7 @@ package main;
 import admin.AdminPageServlet;
 import db.ClearServlet;
 import db.forum.CreateForumServlet;
+import db.forum.GetForumDetailsServlet;
 import db.user.*;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -56,9 +57,11 @@ public class Main {
 
         //FORUM
             //SERVLETS
-        Servlet createForum = (Servlet) new CreateForumServlet();
+        Servlet createForum = (Servlet) new CreateForumServlet(connection);
+        Servlet getForumDetails = new GetForumDetailsServlet(connection);
             //context
         context.addServlet(new ServletHolder(createForum), "/db/api/forum/create/");
+        context.addServlet(new ServletHolder(getForumDetails), "/db/api/forum/details/");
 
 
         //USER
