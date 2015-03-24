@@ -45,6 +45,12 @@ public class UserListPostsServlet extends HttpServlet {
             ResultSet rs = null;
 
             String sqlSelect = "SELECT P.*, U.email FROM post P JOIN user U ON P.user=U.id WHERE U.email=\'" +userEmail+ "\'";
+            sqlSelect = sqlSelect + " ORDER BY " +" P.date " +order;
+            if (limit != null){
+                sqlSelect = sqlSelect + " LIMIT " +limit +";";
+            }else{
+                sqlSelect = sqlSelect + ";";
+            }
             rs = sqlQuery.executeQuery(sqlSelect);
             ArrayList<Map<String, Object>> listOfResponseMap =  new ArrayList<Map<String, Object>>();
             String subSqlSelect = null;
@@ -63,7 +69,11 @@ public class UserListPostsServlet extends HttpServlet {
                 tempResponseMap.put("isHighlighted", new Boolean(rs.getString("isHighlighted")));
                 tempResponseMap.put("isSpam", new Boolean(rs.getString("isSpam")));
                 tempResponseMap.put("message", rs.getString("message"));
-                tempResponseMap.put("parent", new Integer(rs.getString("parent")));
+                if( rs.getString("parent") != null) {
+                    tempResponseMap.put("parent", new Integer(rs.getString("parent")));
+                }else{
+                    tempResponseMap.put("parent", null);
+                }
                 tempResponseMap.put("thread",  new Integer(rs.getString("thread")));
                 tempResponseMap.put("user", rs.getString("email"));
 

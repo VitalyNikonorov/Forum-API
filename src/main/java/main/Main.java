@@ -4,6 +4,7 @@ import admin.AdminPageServlet;
 import db.ClearServlet;
 import db.forum.CreateForumServlet;
 import db.forum.ForumListOfThreadsServlet;
+import db.forum.ForumListOfUsersServlet;
 import db.forum.GetForumDetailsServlet;
 import db.user.*;
 import org.eclipse.jetty.server.Handler;
@@ -61,10 +62,12 @@ public class Main {
         Servlet createForum = (Servlet) new CreateForumServlet(connection);
         Servlet getForumDetails = new GetForumDetailsServlet(connection);
         Servlet listOfThreads = new ForumListOfThreadsServlet(connection);
+        Servlet listOfUsers = new ForumListOfUsersServlet(connection);
             //context
         context.addServlet(new ServletHolder(createForum), "/db/api/forum/create/");
         context.addServlet(new ServletHolder(getForumDetails), "/db/api/forum/details/");
         context.addServlet(new ServletHolder(listOfThreads), "/db/api/forum/listThreads/");
+        context.addServlet(new ServletHolder(listOfUsers), "/db/api/forum/listUsers/");
 
 
         //USER
