@@ -13,9 +13,17 @@ public class SqlWrapper {
         }
         response = response + params[params.length-1] +") VALUES (";
         for (int i=0; i<params.length-1; i++){
-            response = response + "\'"+ jsonObj.get(params[i])+ "\', ";
+            if (jsonObj.get(params[i]) != null) {
+                response = response + "\'" + jsonObj.get(params[i]) + "\', ";
+            }else{
+                response = response + null+", ";
+            }
         }
-        response = response + "\'" + jsonObj.get(params[params.length-1]) +"\')";
+        if (jsonObj.get(params[params.length-1]) != null) {
+            response = response + "\'" + jsonObj.get(params[params.length-1]) + "\');";
+        }else{
+            response = response + null+");";
+        }
         return response;
     }
 

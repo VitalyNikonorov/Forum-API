@@ -124,4 +124,48 @@ public class UserInfo {
         return jsonResponse;
     }
 
+    public static Map<String, Object> getShortUserInfo(Connection connection, String user) {
+        // Database
+        Map<String, Object> responseMap =  new HashMap<>();
+        JSONObject jsonResponse = new JSONObject();
+        // Database
+        try {
+            Statement sqlQuery = connection.createStatement();
+            ResultSet rs = null;
+
+            String sqlSelect = "SELECT * FROM user WHERE email=\'" +user+ "\'";
+            rs = sqlQuery.executeQuery(sqlSelect);
+
+            while(rs.next()){
+                //Parse values
+                responseMap.put("about", rs.getString("about"));
+                responseMap.put("email", rs.getString("email"));
+                responseMap.put("id", new Integer(rs.getString("id")));
+                responseMap.put("isAnonymous", new Boolean(rs.getString("isAnonymous")));
+                responseMap.put("name", rs.getString("name"));
+                responseMap.put("username", rs.getString("username"));
+            }
+
+            rs.close(); rs=null;
+        }
+        catch (SQLException ex){
+            System.out.println("SQLException caught");
+            System.out.println("---");
+            while ( ex != null ){
+                System.out.println("Message   : " + ex.getMessage());
+                System.out.println("SQLState  : " + ex.getSQLState());
+                System.out.println("ErrorCode : " + ex.getErrorCode());
+                System.out.println("---");
+                ex = ex.getNextException();
+            }
+        }
+        catch (Exception ex){
+            System.out.println("Other Error in DetailsUserServlet.");
+        }
+        //Database!!!!
+        return responseMap;
+    }
+
+
+
 }

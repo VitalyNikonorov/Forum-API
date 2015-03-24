@@ -2,10 +2,10 @@ package main;
 
 import admin.AdminPageServlet;
 import db.ClearServlet;
-import db.forum.CreateForumServlet;
-import db.forum.ForumListOfThreadsServlet;
-import db.forum.ForumListOfUsersServlet;
-import db.forum.GetForumDetailsServlet;
+import db.forum.*;
+import db.post.CreatePostServlet;
+import db.post.GetPostDetailsServlet;
+import db.thread.CreateThreadServlet;
 import db.user.*;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -59,15 +59,34 @@ public class Main {
 
         //FORUM
             //SERVLETS
-        Servlet createForum = (Servlet) new CreateForumServlet(connection);
+        Servlet createForum = new CreateForumServlet(connection);
         Servlet getForumDetails = new GetForumDetailsServlet(connection);
         Servlet listOfThreads = new ForumListOfThreadsServlet(connection);
         Servlet listOfUsers = new ForumListOfUsersServlet(connection);
+        Servlet listOfPosts = new ForumListOfPostsServlet(connection);
             //context
         context.addServlet(new ServletHolder(createForum), "/db/api/forum/create/");
         context.addServlet(new ServletHolder(getForumDetails), "/db/api/forum/details/");
         context.addServlet(new ServletHolder(listOfThreads), "/db/api/forum/listThreads/");
         context.addServlet(new ServletHolder(listOfUsers), "/db/api/forum/listUsers/");
+        context.addServlet(new ServletHolder(listOfPosts), "/db/api/forum/listPosts/");
+
+        //POST
+        //SERVLETS
+        Servlet createPost = new CreatePostServlet(connection);
+        Servlet getPostDetails = new GetPostDetailsServlet(connection);
+
+        //context
+        context.addServlet(new ServletHolder(createPost), "/db/api/post/create/");
+        context.addServlet(new ServletHolder(getPostDetails), "/db/api/post/details/");
+
+        //THREAD
+        //SERVLETS
+        Servlet createThread = new CreateThreadServlet(connection);
+
+        //context
+        context.addServlet(new ServletHolder(createThread), "/db/api/thread/create/");
+
 
 
         //USER

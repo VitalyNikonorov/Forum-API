@@ -1,5 +1,4 @@
-package db.user;
-
+package db.thread;
 
 import org.json.JSONObject;
 import temletor.SqlWrapper;
@@ -9,17 +8,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 
-
 /**
- * Created by Виталий on 15.03.2015.
+ * Created by Виталий on 24.03.2015.
  */
-public class CreateUserServlet extends HttpServlet {
+public class CreateThreadServlet extends HttpServlet {
     private Connection connection;
-    public CreateUserServlet(Connection connection){ this.connection = connection; }
+    public CreateThreadServlet(Connection connection){ this.connection = connection; }
 
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
@@ -36,28 +37,23 @@ public class CreateUserServlet extends HttpServlet {
         JSONObject jsonResponse = new JSONObject();
         Map<String, Object> responseMap =  new HashMap<>();
 
-        if (!jsonObject.has("isAnonymous")){
-            jsonObject.put("isAnonymous", "false");
+        if (!jsonObject.has("isDeleted")){
+            jsonObject.put("isDeleted", false);
         }
 
 
         // Database
         try {
             Statement sqlQuery = connection.createStatement();
-            ResultSet rs = null;
-
             String queryStr;
 
-            String[] params = {"name", "username", "email", "about", "isAnonymous"};
-            queryStr = SqlWrapper.getInsertQuery("user", params, jsonObject);
-            //queryStr = "INSERT INTO user (name, username, email, about, isAnonymous) VALUES (\'" +jsonObject.get("name")+ "\', \'" +jsonObject.get("username")+ "\', \'"+jsonObject.get("email")+"\', \'" +jsonObject.get("about")+ "\'"+ ", \'" +jsonObject.get("isAnonymous")+ "\');";
+            String[] params = {"forum", "title", "isClosed", "user", "date", "message", "slug", "isDeleted"};
+            queryStr = SqlWrapper.getInsertQuery("thread", params, jsonObject);
             sqlQuery.executeUpdate(queryStr);
 
-            responseMap = UserInfo.getShortUserInfo(connection, jsonObject.get("email").toString());
-
+            responseMap = ThreadInfo.getShortThreadInfo(connection, jsonObject.getString("date"), jsonObject.getString("user"));
             jsonResponse.put("code", 0);
             jsonResponse.put("response", responseMap);
-            rs.close(); rs=null;
         }
         catch (SQLException ex){
             System.out.println("SQLException caught");
@@ -71,7 +67,7 @@ public class CreateUserServlet extends HttpServlet {
             }
         }
         catch (Exception ex){
-            System.out.println("Other Error in CreateUserServlet.");
+            System.out.println("Other Error in CreateThreadServlet.");
         }
         //Database!!!!
 
