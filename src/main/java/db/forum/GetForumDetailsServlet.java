@@ -1,7 +1,7 @@
 package db.forum;
 
+import db.user.UserInfo;
 import org.json.JSONObject;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -47,88 +47,8 @@ public class GetForumDetailsServlet extends HttpServlet {
             }
 
             if (related != null) {
-                //User info put
-
-                sqlSelect = "SELECT * FROM user WHERE email=\'" +userMap.get("email")+ "\'";
-                rs = sqlQuery.executeQuery(sqlSelect);
-
-                while(rs.next()){
-                    //Parse values
-                    userMap.put("about", rs.getString("about"));
-                    userMap.put("id", new Integer(rs.getString("id")));
-                    userMap.put("isAnonymous", new Boolean(rs.getString("isAnonymous")));
-                    userMap.put("name", rs.getString("name"));
-                    userMap.put("username", rs.getString("username"));
-                }
-
-                //following
-                String[] following;
-                sqlSelect = "SELECT Res.email FROM follow Fol LEFT JOIN user R ON R.id=Fol.id1 JOIN user Res ON Fol.id2=Res.id WHERE R.id=" + userMap.get("id")+ ";";
-                rs = sqlQuery.executeQuery(sqlSelect);
-                int size= 0;
-                if (rs != null)
-                {
-                    rs.beforeFirst();
-                    rs.last();
-                    size = rs.getRow();
-                }
-
-                following = new String[size];
-                rs.beforeFirst();
-                int i = 0;
-                while(rs.next()){
-                    //Parse values
-                    following[i]=rs.getString("email");
-                    i++;
-                }
-
-                //followers
-                String[] followers;
-                sqlSelect = "SELECT Res.email FROM follow Fol LEFT JOIN user R ON R.id=Fol.id2 JOIN user Res ON Fol.id1=Res.id WHERE R.id=" + userMap.get("id") + ";";
-                rs = sqlQuery.executeQuery(sqlSelect);
-                size= 0;
-                if (rs != null)
-                {
-                    rs.beforeFirst();
-                    rs.last();
-                    size = rs.getRow();
-                }
-                followers = new String[size];
-                rs.beforeFirst();
-                i = 0;
-                while(rs.next()){
-                    //Parse values
-                    followers[i]=rs.getString("email");
-                    i++;
-                }
-
-                //subscriptions
-
-                sqlSelect = "SELECT Sub.threadId FROM subscribe Sub LEFT JOIN user R ON R.id=Sub.userid WHERE R.id=" + userMap.get("id") + ";";
-                rs = sqlQuery.executeQuery(sqlSelect);
-                size= 0;
-                if (rs != null)
-                {
-                    rs.beforeFirst();
-                    rs.last();
-                    size = rs.getRow();
-                }
-
-
-                int[] subscriptions = new int[size];
-                rs.beforeFirst();
-                i = 0;
-                while (rs.next()) {
-                    //Parse values
-                    subscriptions[i] = new Integer(rs.getString("threadId"));
-                    i++;
-                }
-                userMap.put("subscriptions", subscriptions);
-
-                userMap.put("following", following);
-                userMap.put("followers", followers);
-
-                responseMap.put("user", userMap);
+                JSONObject userInfo = UserInfo.getFullUserInfo(connection, userMap.get("email").toString());
+                responseMap.put("user", userInfo.get("response"));
             }
             jsonResponse.put("code", 0);
             jsonResponse.put("response", responseMap);
