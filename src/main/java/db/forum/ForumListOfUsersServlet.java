@@ -91,7 +91,7 @@ public class ForumListOfUsersServlet extends HttpServlet {
         } catch (Exception ex) {
             System.out.println("Other Error in DetailsForumServlet.");
         }
-        //Database!!!!
+        //Database!!!
         response.getWriter().println(jsonResponse);
     }
 }
