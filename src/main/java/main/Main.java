@@ -6,6 +6,8 @@ import db.forum.*;
 import db.post.CreatePostServlet;
 import db.post.GetPostDetailsServlet;
 import db.thread.CreateThreadServlet;
+import db.thread.GetThreadDetailsServlet;
+import db.thread.ListOfThreadsServlet;
 import db.user.*;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -83,10 +85,13 @@ public class Main {
         //THREAD
         //SERVLETS
         Servlet createThread = new CreateThreadServlet(connection);
+        Servlet getThreaddetalis = new GetThreadDetailsServlet(connection);
+        Servlet getListOfThreads = new ListOfThreadsServlet(connection);
 
         //context
         context.addServlet(new ServletHolder(createThread), "/db/api/thread/create/");
-
+        context.addServlet(new ServletHolder(getThreaddetalis), "/db/api/thread/details/");
+        context.addServlet(new ServletHolder(getListOfThreads), "/db/api/thread/list/");
 
 
         //USER

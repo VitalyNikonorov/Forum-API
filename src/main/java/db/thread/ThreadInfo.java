@@ -109,4 +109,56 @@ public class ThreadInfo {
         //Database!!!!
         return responseMap;
     }
+
+    public static Map<String, Object> getFullThreadInfoById(Connection connection, int id) {
+        // Database
+        Map<String, Object> responseMap =  new HashMap<>();
+        String sqlSelect = null;
+        // Database
+        try {
+            Statement sqlQuery = connection.createStatement();
+            ResultSet rs = null;
+            responseMap = ThreadInfo.getShortThreadInfoById(connection, id);
+
+            //Likes
+            sqlSelect = "SELECT COUNT(userid) AS likes FROM threadlikes WHERE threadid=" + id +";";
+
+            rs = sqlQuery.executeQuery(sqlSelect);
+            int likes = 0, dislikes = 0;
+            while(rs.next()){
+                likes = new Integer(rs.getString("likes"));
+                responseMap.put("likes", likes);
+            }
+
+            //dislikes
+            sqlSelect = "SELECT COUNT(userid) AS dislikes FROM threaddislikes WHERE threadid=" + id +";";
+            rs = sqlQuery.executeQuery(sqlSelect);
+
+            while(rs.next()){
+                dislikes = new Integer(rs.getString("dislikes"));
+                responseMap.put("dislikes", dislikes);
+            }
+            responseMap.put("points", (likes - dislikes));
+
+
+            rs.close(); rs=null;
+        }
+        catch (SQLException ex){
+            System.out.println("SQLException caught");
+            System.out.println("---");
+            while ( ex != null ){
+                System.out.println("Message   : " + ex.getMessage());
+                System.out.println("SQLState  : " + ex.getSQLState());
+                System.out.println("ErrorCode : " + ex.getErrorCode());
+                System.out.println("---");
+                ex = ex.getNextException();
+            }
+        }
+        catch (Exception ex){
+            System.out.println("Other Error in fullDetailsThreadServletById.");
+        }
+        //Database!!!!
+        return responseMap;
+    }
+
 }
