@@ -5,9 +5,7 @@ import db.ClearServlet;
 import db.forum.*;
 import db.post.CreatePostServlet;
 import db.post.GetPostDetailsServlet;
-import db.thread.CreateThreadServlet;
-import db.thread.GetThreadDetailsServlet;
-import db.thread.ListOfThreadsServlet;
+import db.thread.*;
 import db.user.*;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -87,11 +85,27 @@ public class Main {
         Servlet createThread = new CreateThreadServlet(connection);
         Servlet getThreaddetalis = new GetThreadDetailsServlet(connection);
         Servlet getListOfThreads = new ListOfThreadsServlet(connection);
+        Servlet closeThread = new CloseThreadServlet(connection);
+        Servlet openThread = new OpenThreadServlet(connection);
+        Servlet removeThread = new RemoveThreadServlet(connection);
+        Servlet restoreThread = new RestoreThreadServlet(connection);
+        Servlet subscribeThread = new SubscribeThreadServlet(connection);
+        Servlet unsubscribeThread = new UnsubscribeThreadServlet(connection);
+        Servlet updateThread = new UpdateThreadServlet(connection);
+        Servlet voteThread = new VoteThreadServlet(connection);
 
         //context
         context.addServlet(new ServletHolder(createThread), "/db/api/thread/create/");
         context.addServlet(new ServletHolder(getThreaddetalis), "/db/api/thread/details/");
         context.addServlet(new ServletHolder(getListOfThreads), "/db/api/thread/list/");
+        context.addServlet(new ServletHolder(closeThread), "/db/api/thread/close/");
+        context.addServlet(new ServletHolder(openThread), "/db/api/thread/open/");
+        context.addServlet(new ServletHolder(removeThread), "/db/api/thread/remove/");
+        context.addServlet(new ServletHolder(restoreThread), "/db/api/thread/restore/");
+        context.addServlet(new ServletHolder(subscribeThread), "/db/api/thread/subscribe/");
+        context.addServlet(new ServletHolder(unsubscribeThread), "/db/api/thread/unsubscribe/");
+        context.addServlet(new ServletHolder(updateThread), "/db/api/thread/update/");
+        context.addServlet(new ServletHolder(voteThread), "/db/api/thread/vote/");
 
 
         //USER
