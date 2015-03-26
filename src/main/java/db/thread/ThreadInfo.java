@@ -16,7 +16,7 @@ import java.util.Map;
  */
 public class ThreadInfo {
     public static Map<String, Object> getShortThreadInfo(Connection connection, String date, String user) {
-        // Database
+        // Database__
         Map<String, Object> responseMap =  new HashMap<>();
         String sqlSelect = null;
         // Database
