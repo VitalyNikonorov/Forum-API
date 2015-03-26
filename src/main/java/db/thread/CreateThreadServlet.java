@@ -38,7 +38,7 @@ public class CreateThreadServlet extends HttpServlet {
         Map<String, Object> responseMap =  new HashMap<>();
 
         if (!jsonObject.has("isDeleted")){
-            jsonObject.put("isDeleted", false);
+            jsonObject.put("isDeleted", JSONObject.NULL);
         }
 
 

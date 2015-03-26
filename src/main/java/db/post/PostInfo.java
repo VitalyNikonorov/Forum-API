@@ -27,7 +27,7 @@ public class PostInfo {
 
             while(rs.next()){
                 //Parse values
-                responseMap.put("date", rs.getString("date"));
+                responseMap.put("date", rs.getString("date").substring(0, 19));
                 responseMap.put("forum", rs.getString("forum"));
                 responseMap.put("message", rs.getString("message"));
                 responseMap.put("user", rs.getString("user"));

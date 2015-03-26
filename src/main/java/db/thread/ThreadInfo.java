@@ -6,6 +6,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,7 +29,7 @@ public class ThreadInfo {
 
             while(rs.next()){
                 //Display values
-                responseMap.put("date", rs.getString("date"));
+                responseMap.put("date", rs.getString("date").substring(0, 19));
                 responseMap.put("forum", rs.getString("forum"));
                 responseMap.put("id", new Integer(rs.getString("id")));
                 responseMap.put("isClosed", new Boolean(rs.getString("isClosed")));
@@ -76,9 +78,14 @@ public class ThreadInfo {
 
             while(rs.next()){
                 //Display values
-                responseMap.put("date", rs.getString("date"));
+                //System.out.println("213123 = " + rs.getString("date"));
+                //String date = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date((request.getParameter("date")))
+                //String date = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(rs.getString("date"));
+                //System.out.print(date);
+                responseMap.put("date", rs.getString("date").substring(0, 19));
                 responseMap.put("forum", rs.getString("forum"));
                 responseMap.put("id", new Integer(rs.getString("id")));
+                if(rs.getString("isClosed").equals(null))
                 responseMap.put("isClosed", new Boolean(rs.getString("isClosed")));
                 if (rs.getString("isDeleted") == null){
                     responseMap.put("isDeleted", JSONObject.NULL);
