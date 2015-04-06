@@ -29,14 +29,11 @@ public class ClearServlet extends HttpServlet {
                     "jdbc:mysql://localhost:3306/testdb","test", "test");
 
             Statement sqlQuery = connection.createStatement();
-            ResultSet rs = null;
 
             sqlQuery.executeUpdate("DELETE FROM user;");
             sqlQuery.executeUpdate("DELETE FROM forum;");
             sqlQuery.executeUpdate("DELETE FROM post;");
             sqlQuery.executeUpdate("DELETE FROM thread;");
-
-            rs.close(); rs=null;
             connection.close();
         }
         catch (SQLException ex){
@@ -51,7 +48,7 @@ public class ClearServlet extends HttpServlet {
             }
         }
         catch (Exception ex){
-            System.out.println("Other Error in Main.");
+            System.out.println("Other Error ClearServlet.");
         }
         jsonResponse.put("code", 0);
         jsonResponse.put("response", "OK");

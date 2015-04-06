@@ -44,7 +44,6 @@ public class CreateUserServlet extends HttpServlet {
         // Database
         try {
             Statement sqlQuery = connection.createStatement();
-            ResultSet rs = null;
 
             String queryStr;
 
@@ -57,7 +56,6 @@ public class CreateUserServlet extends HttpServlet {
 
             jsonResponse.put("code", 0);
             jsonResponse.put("response", responseMap);
-            rs.close(); rs=null;
         }
         catch (SQLException ex){
             System.out.println("SQLException caught");

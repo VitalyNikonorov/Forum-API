@@ -123,7 +123,7 @@ public class UserListPostsServlet extends HttpServlet {
             }
         }
         catch (Exception ex){
-            System.out.println("Other Error in UserListOfPostsServlet.");
+            System.out.println("Other Error in UserListPostsServlet.");
         }
         //Database!!!!
         response.getWriter().println(jsonResponse);
