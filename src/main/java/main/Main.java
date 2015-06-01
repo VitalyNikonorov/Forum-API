@@ -22,7 +22,7 @@ import java.sql.*;
 public class Main {
     public static void main(String[] args) throws Exception {
 
-        Server server = new Server(8081);
+        Server server = new Server(8080);
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         Connection connection = null;
 
@@ -110,8 +110,8 @@ public class Main {
 
         //USER
             //SERVLETS
-        Servlet createUser = new CreateUserServlet(connection);
-        Servlet getUserDetails = new GetUserDetailsServlet(connection);
+        Servlet createUser = new CreateUserServlet();
+        Servlet getUserDetails = new GetUserDetailsServlet();
         Servlet followUser = new FollowUserServlet(connection);
         Servlet listFollowers = new UserListFollowersServlet(connection);
         Servlet listFollowing = new UserListFollowingServlet(connection);
