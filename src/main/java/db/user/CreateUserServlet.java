@@ -118,7 +118,7 @@ public class CreateUserServlet extends HttpServlet {
             jsonResponse.put("response", user);
             rs.close(); rs= null;
 
-            System.out.println("\ncreate query:" + jsonRequest + " \nAnswer: " + jsonResponse + "---\n---\n");
+            //System.out.println("\ncreate query:" + jsonRequest + " \nAnswer: " + jsonResponse + "---\n---\n");
         }
         catch (SQLException ex){
             System.out.println("SQLException caught");

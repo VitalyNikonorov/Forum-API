@@ -53,7 +53,7 @@ public class Main {
         Servlet clear = new ClearServlet();
         Servlet AdminPage = new AdminPageServlet(connection);
 
-        System.out.append("Starting at port: ").append(String.valueOf(8081)).append('\n');
+        System.out.append("Starting at port: ").append(String.valueOf(8080)).append('\n');
         context.addServlet(new ServletHolder(clear), "/db/api/clear/");
         context.addServlet(new ServletHolder(AdminPage), "/admin");
 
