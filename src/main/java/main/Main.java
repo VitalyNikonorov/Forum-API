@@ -2,10 +2,6 @@ package main;
 
 import admin.AdminPageServlet;
 import db.ClearServlet;
-import db.forum.*;
-import db.post.CreatePostServlet;
-import db.post.GetPostDetailsServlet;
-import db.thread.*;
 import db.user.*;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -56,56 +52,6 @@ public class Main {
         System.out.append("Starting at port: ").append(String.valueOf(8080)).append('\n');
         context.addServlet(new ServletHolder(clear), "/db/api/clear/");
         context.addServlet(new ServletHolder(AdminPage), "/admin");
-
-        //FORUM
-            //SERVLETS
-        Servlet createForum = new CreateForumServlet(connection);
-        Servlet getForumDetails = new GetForumDetailsServlet(connection);
-        Servlet listOfThreads = new ForumListOfThreadsServlet(connection);
-        Servlet listOfUsers = new ForumListOfUsersServlet(connection);
-        Servlet listOfPosts = new ForumListOfPostsServlet(connection);
-            //context
-        context.addServlet(new ServletHolder(createForum), "/db/api/forum/create/");
-        context.addServlet(new ServletHolder(getForumDetails), "/db/api/forum/details/");
-        context.addServlet(new ServletHolder(listOfThreads), "/db/api/forum/listThreads/");
-        context.addServlet(new ServletHolder(listOfUsers), "/db/api/forum/listUsers/");
-        context.addServlet(new ServletHolder(listOfPosts), "/db/api/forum/listPosts/");
-
-        //POST
-        //SERVLETS
-        Servlet createPost = new CreatePostServlet(connection);
-        Servlet getPostDetails = new GetPostDetailsServlet(connection);
-
-        //context
-        context.addServlet(new ServletHolder(createPost), "/db/api/post/create/");
-        context.addServlet(new ServletHolder(getPostDetails), "/db/api/post/details/");
-
-        //THREAD
-        //SERVLETS
-        Servlet createThread = new CreateThreadServlet(connection);
-        Servlet getThreaddetalis = new GetThreadDetailsServlet(connection);
-        Servlet getListOfThreads = new ListOfThreadsServlet(connection);
-        Servlet closeThread = new CloseThreadServlet(connection);
-        Servlet openThread = new OpenThreadServlet(connection);
-        Servlet removeThread = new RemoveThreadServlet(connection);
-        Servlet restoreThread = new RestoreThreadServlet(connection);
-        Servlet subscribeThread = new SubscribeThreadServlet(connection);
-        Servlet unsubscribeThread = new UnsubscribeThreadServlet(connection);
-        Servlet updateThread = new UpdateThreadServlet(connection);
-        Servlet voteThread = new VoteThreadServlet(connection);
-
-        //context
-        context.addServlet(new ServletHolder(createThread), "/db/api/thread/create/");
-        context.addServlet(new ServletHolder(getThreaddetalis), "/db/api/thread/details/");
-        context.addServlet(new ServletHolder(getListOfThreads), "/db/api/thread/list/");
-        context.addServlet(new ServletHolder(closeThread), "/db/api/thread/close/");
-        context.addServlet(new ServletHolder(openThread), "/db/api/thread/open/");
-        context.addServlet(new ServletHolder(removeThread), "/db/api/thread/remove/");
-        context.addServlet(new ServletHolder(restoreThread), "/db/api/thread/restore/");
-        context.addServlet(new ServletHolder(subscribeThread), "/db/api/thread/subscribe/");
-        context.addServlet(new ServletHolder(unsubscribeThread), "/db/api/thread/unsubscribe/");
-        context.addServlet(new ServletHolder(updateThread), "/db/api/thread/update/");
-        context.addServlet(new ServletHolder(voteThread), "/db/api/thread/vote/");
 
 
         //USER

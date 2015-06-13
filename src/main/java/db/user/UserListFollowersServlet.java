@@ -22,7 +22,6 @@ public class UserListFollowersServlet extends HttpServlet {
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-        Map<String, Object> responseMap =  new HashMap<>();
         JSONObject jsonResponse = new JSONObject();
 
         String userEmail = request.getParameter("user");
@@ -46,7 +45,7 @@ public class UserListFollowersServlet extends HttpServlet {
 
         // Database
         try {
-            PreparedStatement pstmt = connection.prepareStatement("SELECT * FROM user WHERE email=?");
+            PreparedStatement pstmt = connection.prepareStatement("SELECT * FROM users WHERE email=?");
             pstmt.setString(1, userEmail);
 
 
@@ -84,17 +83,17 @@ public class UserListFollowersServlet extends HttpServlet {
                 }
             }
 
-            String sqlSelect = "SELECT * FROM follow WHERE id2= " + user.get("id");
+            String sqlSelect = "SELECT * FROM follow WHERE followee_id= " + user.get("id");
 
             if ( since_id != null){
-                sqlSelect = sqlSelect + " AND id1 >= " +since_id;
+                sqlSelect = sqlSelect + " AND follower_id >= " +since_id;
             }
 
             if ( max_id != null){
-                sqlSelect = sqlSelect + " AND  id1 <= " +max_id;
+                sqlSelect = sqlSelect + " AND  follower_id <= " +max_id;
             }
 
-            sqlSelect = sqlSelect + " ORDER BY " + " id1 " +order;
+            sqlSelect = sqlSelect + " ORDER BY " + " follower_id " +order;
 
             if (limit != null){
                 sqlSelect = sqlSelect + " LIMIT " +limit +";";
@@ -119,7 +118,7 @@ public class UserListFollowersServlet extends HttpServlet {
 
             while(rs.next()){
                 //Parse values
-                followers[i]=rs.getInt("id1");
+                followers[i]=rs.getInt("follower_id");
                 i++;
             }
             List<Map<String, Object>> arrayResponse = new ArrayList<Map<String, Object>>();

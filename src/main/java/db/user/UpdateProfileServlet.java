@@ -35,15 +35,14 @@ public class UpdateProfileServlet extends HttpServlet {
 
         JSONObject jsonObject = new JSONObject(jb.toString());
         JSONObject jsonResponse = new JSONObject();
-        Map<String, Object> responseMap = new HashMap<>();
 
         // Database
         try {
             Statement sqlQuery = connection.createStatement();
             ResultSet rs = null;
-            String sqlUpdate, sqlSelect;
+            String sqlUpdate;
 
-            sqlUpdate = "UPDATE user SET name=\'" + jsonObject.get("name") + "\', about=\'" + jsonObject.get("about") + "\' WHERE email=\'" + jsonObject.get("user") + "\';";
+            sqlUpdate = "UPDATE users SET name=\'" + jsonObject.get("name") + "\', about=\'" + jsonObject.get("about") + "\' WHERE email=\'" + jsonObject.get("user") + "\';";
             sqlQuery.executeUpdate(sqlUpdate);
 
             jsonResponse = UserInfo.getFullUserInfo(connection, jsonObject.get("user").toString());

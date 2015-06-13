@@ -64,8 +64,17 @@ public class CreateUserServlet extends HttpServlet {
 
         JSONObject jsonResponse = new JSONObject();
 
-        if (!jsonRequest.has("isAnonymous")){
-            jsonRequest.put("isAnonymous", "false");
+        if ( (!jsonRequest.has("isAnonymous")) ){
+            jsonRequest.put("isAnonymous", "0");
+        }else{
+            if(jsonRequest.getString("isAnonymous").equals("true")){
+                jsonRequest.remove("isAnonymous");
+                jsonRequest.put("isAnonymous", "1");
+            }else{
+                jsonRequest.remove("isAnonymous");
+                jsonRequest.put("isAnonymous", "0");
+            }
+
         }
 
         // Database
@@ -80,13 +89,13 @@ public class CreateUserServlet extends HttpServlet {
             String about = jsonRequest.getString("about");
 
             PreparedStatement pstmt = connection.prepareStatement(
-                    "INSERT INTO user (name, username, email, about, isAnonymous) VALUES (?, ?, ?, ?, ?);");
+                    "INSERT INTO users (name, username, email, about, isAnonymous) VALUES (?, ?, ?, ?, ?);");
 
             pstmt.setString(1, name);
             pstmt.setString(2, username);
             pstmt.setString(3, email);
             pstmt.setString(4, about);
-            pstmt.setBoolean(5, jsonRequest.getBoolean("isAnonymous"));
+            pstmt.setString(5, jsonRequest.getString("isAnonymous"));
 
             pstmt.executeUpdate();
             pstmt.close();

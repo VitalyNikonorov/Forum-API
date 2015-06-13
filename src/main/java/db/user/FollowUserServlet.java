@@ -41,13 +41,13 @@ public class FollowUserServlet extends HttpServlet {
 
             String queryStr;
             int id1=0, id2=0;
-            rs = sqlQuery.executeQuery("SELECT id FROM user WHERE email=\'" +jsonObject.get("follower")+ "\';");
+            rs = sqlQuery.executeQuery("SELECT id FROM users WHERE email=\'" +jsonObject.get("follower")+ "\';");
             while(rs.next()){
                 //get id
                 id1 = new Integer(rs.getString("id"));
             }
 
-            rs = sqlQuery.executeQuery("SELECT id FROM user WHERE email=\'" +jsonObject.get("followee")+ "\';");
+            rs = sqlQuery.executeQuery("SELECT id FROM users WHERE email=\'" +jsonObject.get("followee")+ "\';");
             while(rs.next()){
                 //get id
                 id2 = new Integer(rs.getString("id"));

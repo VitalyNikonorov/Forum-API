@@ -43,7 +43,7 @@ public class UserListFollowingServlet extends HttpServlet {
 
         // Database
         try {
-            PreparedStatement pstmt = connection.prepareStatement("SELECT * FROM user WHERE email=?");
+            PreparedStatement pstmt = connection.prepareStatement("SELECT * FROM users WHERE email=?");
             pstmt.setString(1, userEmail);
 
             ResultSet rs = null;
@@ -77,17 +77,17 @@ public class UserListFollowingServlet extends HttpServlet {
                 }
             }
 
-            String sqlSelect = "SELECT * FROM follow WHERE id1= " + user.get("id");
+            String sqlSelect = "SELECT * FROM follow WHERE follower_id= " + user.get("id");
 
             if ( since_id != null){
-                sqlSelect = sqlSelect + " AND id2 >= " +since_id;
+                sqlSelect = sqlSelect + " AND followee_id >= " +since_id;
             }
 
             if ( max_id != null){
-                sqlSelect = sqlSelect + " AND  id2 <= " +max_id;
+                sqlSelect = sqlSelect + " AND  followee_id <= " +max_id;
             }
 
-            sqlSelect = sqlSelect + " ORDER BY " + " id2 " +order;
+            sqlSelect = sqlSelect + " ORDER BY " + " followee_id " +order;
 
             if (limit != null){
                 sqlSelect = sqlSelect + " LIMIT " +limit +";";
@@ -112,7 +112,7 @@ public class UserListFollowingServlet extends HttpServlet {
             int i = 0;
             while(rs.next()){
                 //Parse values
-                followers[i]=rs.getInt("id1");
+                followers[i]=rs.getInt("follower_id");
                 i++;
             }
             List<Map<String, Object>> arrayResponse = new ArrayList<Map<String, Object>>();

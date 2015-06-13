@@ -54,7 +54,7 @@ public class UserInfo {
             //following
             String[] following;
             Statement sqlQuery = connection.createStatement();
-            String sqlSelect = "SELECT Res.email FROM follow Fol LEFT JOIN user R ON R.id=Fol.id1 JOIN user Res ON Fol.id2=Res.id WHERE R.id=" + user.get("id")+ ";";
+            String sqlSelect = "SELECT Res.email FROM follow Fol LEFT JOIN users U ON U.id=Fol.follower_id JOIN users Res ON Fol.followee_id=Res.id WHERE U.id=" + user.get("id")+ ";";
             rs = sqlQuery.executeQuery(sqlSelect);
             int size= 0;
             if (rs != null)
@@ -74,7 +74,7 @@ public class UserInfo {
 
             //followers
             String[] followers;
-            sqlSelect = "SELECT Res.email FROM follow Fol LEFT JOIN user R ON R.id=Fol.id2 JOIN user Res ON Fol.id1=Res.id WHERE R.id=" + user.get("id") + ";";
+            sqlSelect = "SELECT Res.email FROM follow Fol LEFT JOIN users U ON U.id=Fol.followee_id JOIN users Res ON Fol.follower_id=Res.id WHERE U.id=" + user.get("id") + ";";
             rs = sqlQuery.executeQuery(sqlSelect);
             size= 0;
             if (rs != null)
@@ -94,7 +94,7 @@ public class UserInfo {
 
             //subscriptions
 
-            sqlSelect = "SELECT Sub.threadId FROM subscribe Sub LEFT JOIN user R ON R.id=Sub.userid WHERE R.id=" + user.get("id") + ";";
+            sqlSelect = "SELECT Sub.thread_id FROM subscribtion Sub LEFT JOIN users R ON R.id=Sub.user_id WHERE R.id=" + user.get("id") + ";";
             rs = sqlQuery.executeQuery(sqlSelect);
             size= 0;
             if (rs != null)
@@ -146,7 +146,7 @@ public class UserInfo {
         // Database
         Map<String, Object> user = new HashMap<>();
         try {
-            PreparedStatement pstmt = connection.prepareStatement("SELECT * FROM user WHERE id=?");
+            PreparedStatement pstmt = connection.prepareStatement("SELECT * FROM users WHERE id=?");
             pstmt.setInt(1, id);
 
             ResultSet rs = null;
@@ -184,7 +184,7 @@ public class UserInfo {
             //following
             String[] following;
             Statement sqlQuery = connection.createStatement();
-            String sqlSelect = "SELECT Res.email FROM follow Fol LEFT JOIN user R ON R.id=Fol.id1 JOIN user Res ON Fol.id2=Res.id WHERE R.id=" + user.get("id")+ ";";
+            String sqlSelect = "SELECT Res.email FROM follow Fol LEFT JOIN users U ON U.id=Fol.follower_id JOIN users Res ON Fol.followee_id=Res.id WHERE U.id=" + user.get("id")+ ";";
             rs = sqlQuery.executeQuery(sqlSelect);
             int size= 0;
             if (rs != null)
@@ -204,7 +204,7 @@ public class UserInfo {
 
             //followers
             String[] followers;
-            sqlSelect = "SELECT Res.email FROM follow Fol LEFT JOIN user R ON R.id=Fol.id2 JOIN user Res ON Fol.id1=Res.id WHERE R.id=" + user.get("id") + ";";
+            sqlSelect = "SELECT Res.email FROM follow Fol LEFT JOIN users U ON U.id=Fol.followee_id JOIN users Res ON Fol.follower_id=Res.id WHERE U.id=" + user.get("id") + ";";
             rs = sqlQuery.executeQuery(sqlSelect);
             size= 0;
             if (rs != null)
@@ -224,7 +224,7 @@ public class UserInfo {
 
             //subscriptions
 
-            sqlSelect = "SELECT Sub.threadId FROM subscribe Sub LEFT JOIN user R ON R.id=Sub.userid WHERE R.id=" + user.get("id") + ";";
+            sqlSelect = "SELECT Sub.thread_id FROM subscribtion Sub LEFT JOIN users R ON R.id=Sub.user_id WHERE R.id=" + user.get("id") + ";";
             rs = sqlQuery.executeQuery(sqlSelect);
             size= 0;
             if (rs != null)
@@ -248,8 +248,6 @@ public class UserInfo {
             user.put("following", following);
             user.put("followers", followers);
             rs.close(); rs=null;
-
-
         }
         catch (SQLException ex){
             System.out.println("SQLException caught");
@@ -268,50 +266,4 @@ public class UserInfo {
         //Database!!!!
         return user;
     }
-
-
-    public static Map<String, Object> getShortUserInfo(Connection connection, String user) {
-        // Database
-        Map<String, Object> responseMap =  new HashMap<>();
-        JSONObject jsonResponse = new JSONObject();
-        // Database
-        try {
-            Statement sqlQuery = connection.createStatement();
-            ResultSet rs = null;
-
-            String sqlSelect = "SELECT * FROM user WHERE email=\'" +user+ "\'";
-            rs = sqlQuery.executeQuery(sqlSelect);
-
-            while(rs.next()){
-                //Parse values
-                responseMap.put("about", rs.getString("about"));
-                responseMap.put("email", rs.getString("email"));
-                responseMap.put("id", new Integer(rs.getString("id")));
-                responseMap.put("isAnonymous", new Boolean(rs.getString("isAnonymous")));
-                responseMap.put("name", rs.getString("name"));
-                responseMap.put("username", rs.getString("username"));
-            }
-
-            rs.close(); rs=null;
-        }
-        catch (SQLException ex){
-            System.out.println("SQLException caught");
-            System.out.println("---");
-            while ( ex != null ){
-                System.out.println("Message   : " + ex.getMessage());
-                System.out.println("SQLState  : " + ex.getSQLState());
-                System.out.println("ErrorCode : " + ex.getErrorCode());
-                System.out.println("---");
-                ex = ex.getNextException();
-            }
-        }
-        catch (Exception ex){
-            System.out.println("Other Error in DetailsUserServlet.");
-        }
-        //Database!!!!
-        return responseMap;
-    }
-
-
-
 }

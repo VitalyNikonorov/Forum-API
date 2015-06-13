@@ -30,19 +30,13 @@ public class ClearServlet extends HttpServlet {
 
             Statement sqlQuery = connection.createStatement();
 
-            sqlQuery.executeUpdate("DELETE FROM user;");
+            sqlQuery.executeUpdate("DELETE FROM users;");
             sqlQuery.executeUpdate("DELETE FROM forum;");
             sqlQuery.executeUpdate("DELETE FROM post;");
             sqlQuery.executeUpdate("DELETE FROM thread;");
-            sqlQuery.executeUpdate("DELETE FROM dislikes;");
+            sqlQuery.executeUpdate("DELETE FROM subscribtion;");
             sqlQuery.executeUpdate("DELETE FROM follow;");
-            sqlQuery.executeUpdate("DELETE FROM likes;");
-            sqlQuery.executeUpdate("DELETE FROM postdislikes;");
-            sqlQuery.executeUpdate("DELETE FROM postlikes;");
-            sqlQuery.executeUpdate("DELETE FROM subscribe;");
-            sqlQuery.executeUpdate("DELETE FROM threaddislikes;");
-            sqlQuery.executeUpdate("DELETE FROM threadlikes;");
-            sqlQuery.executeUpdate("DELETE FROM threadsubscribe;");
+
             connection.close();
         }
         catch (SQLException ex){

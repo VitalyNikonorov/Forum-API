@@ -45,21 +45,21 @@ public class UnfollowUserServlet extends HttpServlet {
             String sqlSelect;
             int follower = 0, followee = 0;
 
-            sqlSelect = "SELECT id FROM user WHERE email=\'" +jsonObject.get("follower") +"\';";
+            sqlSelect = "SELECT id FROM users WHERE email=\'" +jsonObject.get("follower") +"\';";
             rs = sqlQuery.executeQuery(sqlSelect);
             while(rs.next()){
                 //Parse values
                 follower = new Integer(rs.getString("id"));
             }
 
-            sqlSelect = "SELECT id FROM user WHERE email=\'" +jsonObject.get("followee") +"\';";
+            sqlSelect = "SELECT id FROM users WHERE email=\'" +jsonObject.get("followee") +"\';";
             rs = sqlQuery.executeQuery(sqlSelect);
             while(rs.next()){
                 //Parse values
                 followee = new Integer(rs.getString("id"));
             }
 
-            sqlSelect = "DELETE FROM follow WHERE id1=" +follower+ " AND id2=" +followee+ ";";
+            sqlSelect = "DELETE FROM follow WHERE follower_id=" +follower+ " AND followee_id=" +followee+ ";";
             sqlQuery.executeUpdate(sqlSelect);
 
             jsonResponse = UserInfo.getFullUserInfo(connection, jsonObject.get("follower").toString());

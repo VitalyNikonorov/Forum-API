@@ -14,17 +14,6 @@ import java.util.Objects;
 /**
  * Created by Виталий on 22.03.2015.
  */
-/*public class GetUserDetailsServlet extends HttpServlet {
-    private Connection connection;
-    public GetUserDetailsServlet(Connection connection){ this.connection = connection; }
-
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
-        String userEmail = request.getParameter("user");
-        JSONObject jsonResponse = UserInfo.getFullUserInfo(connection, userEmail);
-        response.getWriter().println(jsonResponse);
-    }
-}*/
 
 
 public class GetUserDetailsServlet extends HttpServlet {
