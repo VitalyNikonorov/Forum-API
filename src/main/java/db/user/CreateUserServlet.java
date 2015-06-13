@@ -17,23 +17,9 @@ import java.util.Map;
  */
 public class CreateUserServlet extends HttpServlet {
     private Connection connection;
-    public CreateUserServlet(){
-        try {
-            DriverManager.registerDriver(new com.mysql.jdbc.Driver());
-            this.connection = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/testdb","test", "test");
-        }
-        catch (SQLException ex){
-            System.out.println("SQLException caught");
-            System.out.println("---");
-            while ( ex != null ){
-                System.out.println("Message   : " + ex.getMessage());
-                System.out.println("SQLState  : " + ex.getSQLState());
-                System.out.println("ErrorCode : " + ex.getErrorCode());
-                System.out.println("---");
-                ex = ex.getNextException();
-            }
-        }
+
+    public CreateUserServlet(Connection connection){
+            this.connection = connection;
     }
 
     private boolean valideteUser(JSONObject jso){
@@ -67,7 +53,7 @@ public class CreateUserServlet extends HttpServlet {
         if ( (!jsonRequest.has("isAnonymous")) ){
             jsonRequest.put("isAnonymous", "0");
         }else{
-            if(jsonRequest.getString("isAnonymous").equals("true")){
+            if(jsonRequest.getBoolean("isAnonymous") == true ){
                 jsonRequest.remove("isAnonymous");
                 jsonRequest.put("isAnonymous", "1");
             }else{
@@ -100,7 +86,7 @@ public class CreateUserServlet extends HttpServlet {
             pstmt.executeUpdate();
             pstmt.close();
 
-            pstmt = connection.prepareStatement("SELECT * FROM user WHERE email=?");
+            pstmt = connection.prepareStatement("SELECT * FROM users WHERE email=?");
             pstmt.setString(1, jsonRequest.getString("email"));
 
             ResultSet rs = null;

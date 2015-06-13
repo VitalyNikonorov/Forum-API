@@ -16,7 +16,7 @@ public class UserInfo {
         JSONObject jsonResponse = new JSONObject();
         String userEmail = userMail;
         try {
-            PreparedStatement pstmt = connection.prepareStatement("SELECT * FROM user WHERE email=?");
+            PreparedStatement pstmt = connection.prepareStatement("SELECT * FROM users WHERE email=?");
             pstmt.setString(1, userEmail);
 
             ResultSet rs = null;

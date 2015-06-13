@@ -18,23 +18,11 @@ import java.util.Objects;
 
 public class GetUserDetailsServlet extends HttpServlet {
     private Connection connection;
-    public GetUserDetailsServlet(){
-        try {
-            DriverManager.registerDriver(new com.mysql.jdbc.Driver());
-            this.connection = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/testdb","test", "test");
-        }
-        catch (SQLException ex){
-            System.out.println("SQLException caught");
-            System.out.println("---");
-            while ( ex != null ){
-                System.out.println("Message   : " + ex.getMessage());
-                System.out.println("SQLState  : " + ex.getSQLState());
-                System.out.println("ErrorCode : " + ex.getErrorCode());
-                System.out.println("---");
-                ex = ex.getNextException();
-            }
-        } }
+
+    public GetUserDetailsServlet(Connection connection){
+        this.connection = connection;
+
+    }
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("application/json;charset=utf-8");

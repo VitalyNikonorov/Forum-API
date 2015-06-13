@@ -21,7 +21,6 @@ public class UserListFollowingServlet extends HttpServlet {
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-        Map<String, Object> responseMap =  new HashMap<>();
         JSONObject jsonResponse = new JSONObject();
 
         String userEmail = request.getParameter("user");
@@ -112,7 +111,7 @@ public class UserListFollowingServlet extends HttpServlet {
             int i = 0;
             while(rs.next()){
                 //Parse values
-                followers[i]=rs.getInt("follower_id");
+                followers[i]=rs.getInt("followee_id");
                 i++;
             }
             List<Map<String, Object>> arrayResponse = new ArrayList<Map<String, Object>>();

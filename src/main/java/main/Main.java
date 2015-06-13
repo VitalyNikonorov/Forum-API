@@ -27,7 +27,7 @@ public class Main {
         try {
             DriverManager.registerDriver(new com.mysql.jdbc.Driver());
             connection = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/testdb","test", "test");
+                    "jdbc:mysql://localhost:3306/testdb","root", "");
             Statement sqlQuery = connection.createStatement();
         }
         catch (SQLException ex){
@@ -56,8 +56,8 @@ public class Main {
 
         //USER
             //SERVLETS
-        Servlet createUser = new CreateUserServlet();
-        Servlet getUserDetails = new GetUserDetailsServlet();
+        Servlet createUser = new CreateUserServlet(connection);
+        Servlet getUserDetails = new GetUserDetailsServlet(connection);
         Servlet followUser = new FollowUserServlet(connection);
         Servlet listFollowers = new UserListFollowersServlet(connection);
         Servlet listFollowing = new UserListFollowingServlet(connection);

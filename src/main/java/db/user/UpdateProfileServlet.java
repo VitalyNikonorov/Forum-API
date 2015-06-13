@@ -39,15 +39,12 @@ public class UpdateProfileServlet extends HttpServlet {
         // Database
         try {
             Statement sqlQuery = connection.createStatement();
-            ResultSet rs = null;
             String sqlUpdate;
 
             sqlUpdate = "UPDATE users SET name=\'" + jsonObject.get("name") + "\', about=\'" + jsonObject.get("about") + "\' WHERE email=\'" + jsonObject.get("user") + "\';";
             sqlQuery.executeUpdate(sqlUpdate);
 
             jsonResponse = UserInfo.getFullUserInfo(connection, jsonObject.get("user").toString());
-            rs.close();
-            rs = null;
         } catch (SQLException ex) {
             System.out.println("SQLException caught");
             System.out.println("---");

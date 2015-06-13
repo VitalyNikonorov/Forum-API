@@ -16,6 +16,7 @@ import java.util.*;
 /**
  * Created by Виталий on 23.03.2015.
  */
+
 public class UserListPostsServlet extends HttpServlet {
     private Connection connection;
     public UserListPostsServlet(Connection connection){ this.connection = connection; }
@@ -24,7 +25,7 @@ public class UserListPostsServlet extends HttpServlet {
 
 
         JSONObject jsonResponse = new JSONObject();
-
+/*
         String userEmail = request.getParameter("user");
         String limit = request.getParameter("limit");
         String order = request.getParameter("order");
@@ -44,7 +45,7 @@ public class UserListPostsServlet extends HttpServlet {
             Statement sqlQuery = connection.createStatement();
             ResultSet rs = null;
 
-            String sqlSelect = "SELECT P.*, U.email FROM post P JOIN user U ON P.user=U.id WHERE U.email=\'" +userEmail+ "\'";
+            String sqlSelect = "SELECT P.*, U.email FROM post P JOIN users U ON P.user=U.id WHERE U.email=\'" +userEmail+ "\'";
             sqlSelect = sqlSelect + " ORDER BY " +" P.date " +order;
             if (limit != null){
                 sqlSelect = sqlSelect + " LIMIT " +limit +";";
@@ -83,7 +84,7 @@ public class UserListPostsServlet extends HttpServlet {
 
             for (int j=0; j<i; j++){
                 //Likes
-                subSqlSelect = "SELECT COUNT(id) AS likes FROM likes L JOIN user U ON L.userid=U.id WHERE L.postid=" + listOfResponseMap.get(j).get("id") +";";
+                subSqlSelect = "SELECT COUNT(id) AS likes FROM likes L JOIN users U ON L.userid=U.id WHERE L.postid=" + listOfResponseMap.get(j).get("id") +";";
 
                 rsSub = sqlQuery.executeQuery(subSqlSelect);
                 int likes = 0, dislikes = 0;
@@ -93,7 +94,7 @@ public class UserListPostsServlet extends HttpServlet {
                 }
 
                 //dislikes
-                subSqlSelect = "SELECT COUNT(id) AS dislikes FROM dislikes D JOIN user U ON D.userid=U.id WHERE D.postid=" + listOfResponseMap.get(j).get("id") +";";
+                subSqlSelect = "SELECT COUNT(id) AS dislikes FROM dislikes D JOIN users U ON D.userid=U.id WHERE D.postid=" + listOfResponseMap.get(j).get("id") +";";
                 rsSub = sqlQuery.executeQuery(subSqlSelect);
 
                 while(rsSub.next()){
@@ -124,7 +125,7 @@ public class UserListPostsServlet extends HttpServlet {
         }
         catch (Exception ex){
             System.out.println("Other Error in UserListPostsServlet.");
-        }
+        }*/
         //Database!!!!
         response.getWriter().println(jsonResponse);
     }
