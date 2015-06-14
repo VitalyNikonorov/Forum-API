@@ -2,6 +2,8 @@ package main;
 
 import admin.AdminPageServlet;
 import db.ClearServlet;
+import db.forum.CreateForumServlet;
+import db.forum.GetForumDetailsServlet;
 import db.user.*;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -73,6 +75,16 @@ public class Main {
         context.addServlet(new ServletHolder(listPosts), "/db/api/user/listPosts/");
         context.addServlet(new ServletHolder(unfollowUser), "/db/api/user/unfollow/");
         context.addServlet(new ServletHolder(updateProfile), "/db/api/user/updateProfile/");
+
+
+        //FORUM
+        Servlet createForum = new CreateForumServlet();
+        Servlet getForumDetails = new GetForumDetailsServlet(connection);
+
+        //CONTEXT
+        context.addServlet(new ServletHolder(createForum), "/db/api/forum/create/");
+        context.addServlet(new ServletHolder(getForumDetails), "/db/api/forum/details/");
+
 
         //Static
         ResourceHandler resource_handler = new ResourceHandler();

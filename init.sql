@@ -22,12 +22,12 @@ foreign key(`followee_id`) references `users`(id)
 
 create table `forum` (
 `id` mediumint unsigned auto_increment not null,
-`founder_id` mediumint unsigned not null,
+`user_email` char(32) not null,
 `name` varchar(255) not null unique ,
 `short_name` varchar(255) not null unique,
 `date_of_creating` TIMESTAMP default NOW(),
 primary key (`id`),
-foreign key(`founder_id`) references `users`(id)
+foreign key(`user_email`) references `users`(email)
 ) engine=InnoDB default charset=cp1251;
 
 create table `thread` (
