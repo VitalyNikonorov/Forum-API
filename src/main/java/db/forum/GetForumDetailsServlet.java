@@ -98,6 +98,6 @@ public class GetForumDetailsServlet extends HttpServlet {
             ex = ex.getNextException();
         }
         return data;
-        }
+    }
 
 }

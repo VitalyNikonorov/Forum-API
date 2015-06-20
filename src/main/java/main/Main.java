@@ -4,6 +4,8 @@ import admin.AdminPageServlet;
 import db.ClearServlet;
 import db.forum.CreateForumServlet;
 import db.forum.GetForumDetailsServlet;
+import db.post.CreatePostServlet;
+import db.post.GetPostDetailsServlet;
 import db.thread.CreateThreadServlet;
 import db.thread.GetThreadDetailsServlet;
 import db.user.*;
@@ -94,6 +96,14 @@ public class Main {
         //CONTEXT
         context.addServlet(new ServletHolder(createThread), "/db/api/thread/create/");
         context.addServlet(new ServletHolder(getThreadDetails), "/db/api/thread/details/");
+
+        //POST
+        Servlet createPost = new CreatePostServlet();
+        Servlet getPostDetails = new GetPostDetailsServlet(connection);
+
+        //CONTEXT
+        context.addServlet(new ServletHolder(createPost), "/db/api/post/create/");
+        context.addServlet(new ServletHolder(getPostDetails), "/db/api/post/details/");
 
 
         //Static
