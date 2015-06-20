@@ -144,7 +144,7 @@ public class GetThreadDetailsServlet extends HttpServlet {
             data.put("slug", resultSet.getString("slug"));
             data.put("title", resultSet.getString("title"));
             if (user) {
-                data.put("user", UserInfo.getFullUserInfo(connection, resultSet.getString("user_email")));
+                data.put("user", UserInfo.getFullUserInfo(connection, resultSet.getString("user_email")).get("response"));
             } else {
                 data.put("user", resultSet.getString("user_email"));
             }

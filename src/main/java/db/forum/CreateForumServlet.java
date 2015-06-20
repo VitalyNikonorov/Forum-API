@@ -23,7 +23,6 @@ public class CreateForumServlet  extends HttpServlet {
             DriverManager.registerDriver(new com.mysql.jdbc.Driver());
             this.connection = DriverManager.getConnection(
                     "jdbc:mysql://localhost:3306/testdb","root", "");
-            Statement sqlQuery = connection.createStatement();
         }
         catch (SQLException ex){
             System.out.println("SQLException caught");

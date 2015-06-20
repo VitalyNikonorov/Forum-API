@@ -50,18 +50,15 @@ create table `post` (
 `isApproved` tinyint unsigned not null default '0',
 `isSpam` tinyint unsigned not null default '0',
 `isHighlighted` tinyint unsigned not null default '0',
-`author_id` mediumint unsigned not null,
-`forum_id` mediumint unsigned not null,
+`user_email` char(32) not null,
+`forum` varchar(255) not null,
 `thread` mediumint unsigned not null,
 `parent` varchar(255) not null,
 `message` LONGTEXT not null,
 `date_of_creating` TIMESTAMP default NOW(),
 `likes` mediumint default 0,
 `dislikes` mediumint default 0,
-primary key (`id`),
-foreign key(`author_id`) references `users`(id),
-foreign key(`forum_id`) references `forum`(id),
-foreign key(`thread`) references `thread`(id)
+primary key (`id`)
 ) engine=InnoDB default charset=cp1251;
 
 create table `subscribtion` (
