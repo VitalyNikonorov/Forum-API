@@ -2,10 +2,7 @@ package main;
 
 import admin.AdminPageServlet;
 import db.ClearServlet;
-import db.forum.CreateForumServlet;
-import db.forum.ForumListPostsServlet;
-import db.forum.ForumListThreadsServlet;
-import db.forum.GetForumDetailsServlet;
+import db.forum.*;
 import db.post.CreatePostServlet;
 import db.post.GetPostDetailsServlet;
 import db.thread.CreateThreadServlet;
@@ -88,12 +85,14 @@ public class Main {
         Servlet getForumDetails = new GetForumDetailsServlet(connection);
         Servlet forumListPostServlet = new ForumListPostsServlet(connection);
         Servlet forumListThreadsServlet = new ForumListThreadsServlet(connection);
+        Servlet forumListUsersServlet = new ForumListUsersServlet(connection);
 
         //CONTEXT
         context.addServlet(new ServletHolder(createForum), "/db/api/forum/create/");
         context.addServlet(new ServletHolder(getForumDetails), "/db/api/forum/details/");
         context.addServlet(new ServletHolder(forumListPostServlet), "/db/api/forum/listPosts/");
         context.addServlet(new ServletHolder(forumListThreadsServlet), "/db/api/forum/listThreads/");
+        context.addServlet(new ServletHolder(forumListUsersServlet), "/db/api/forum/listUsers/");
 
         //THREAD
         Servlet createThread = new CreateThreadServlet();

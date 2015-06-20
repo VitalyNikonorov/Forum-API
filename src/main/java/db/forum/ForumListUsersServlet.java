@@ -1,0 +1,90 @@
+package db.forum;
+
+import db.user.UserInfo;
+import org.json.JSONObject;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Map;
+
+/**
+ * Created by vitaly on 20.06.15.
+ */
+public class ForumListUsersServlet extends HttpServlet {
+    private Connection connection;
+    public ForumListUsersServlet(Connection connection){ this.connection = connection; }
+
+    public void doGet(HttpServletRequest request,
+                      HttpServletResponse response) throws ServletException, IOException {
+
+        String forum = request.getParameter("forum");
+        String order = request.getParameter("order");
+        if (order == null){
+            order = "desc";
+        }
+
+        String since_id = request.getParameter("since_id");
+        if (since_id == null){
+            since_id = "-1";
+        }
+        String limit = request.getParameter("limit");
+
+        short status = 0;
+        String message = "";
+
+        ResultSet resultSet;
+        try {
+            Statement sqlQuery = connection.createStatement();
+
+            String sqlSelect = "SELECT DISTINCT U.id FROM post P JOIN users U ON P.user_email = U.email WHERE (P.forum=\'" +forum+ "\' " +
+                "AND U.id > "+since_id+") ORDER BY U.name " +order;
+
+            if (limit != null){
+                sqlSelect = sqlSelect + " LIMIT " +limit +";";
+            }else{
+                sqlSelect = sqlSelect + ";";
+            }
+
+            resultSet = sqlQuery.executeQuery(sqlSelect);
+            createResponse(response, status, message, resultSet);
+            resultSet.close();
+            resultSet = null;
+
+        } catch (SQLException e) {
+
+            e.printStackTrace();
+        }
+    }
+
+    private void createResponse(HttpServletResponse response, short status, String message, ResultSet resultSet) throws IOException, SQLException {
+
+        response.setContentType("json;charset=UTF-8");
+        response.setHeader("Cache-Control", "no-cache");
+        response.setStatus(HttpServletResponse.SC_OK);
+
+        JSONObject obj = new JSONObject();
+
+        ArrayList<Map<String, Object>> listOfResponse =  new ArrayList<Map<String, Object>>();
+
+        if (status != 0 || resultSet == null) {
+            obj.put("response", message);
+        } else {
+            int i = 0;
+            while (resultSet.next()) {
+                listOfResponse.add(i, UserInfo.getFullUserInfoById(connection, resultSet.getInt("id")));
+                i++;
+            }
+            obj.put("response", listOfResponse);
+        }
+        obj.put("code", status);
+        response.getWriter().write(obj.toString());
+    }
+}

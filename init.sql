@@ -1,4 +1,4 @@
-drop database testdb;
+#drop database testdb;
 create database testdb;
 
 use testdb;

@@ -52,7 +52,6 @@ public class UserListPostsServlet extends HttpServlet {
             }
             rs = sqlQuery.executeQuery(sqlSelect);
             ArrayList<Map<String, Object>> listOfResponseMap =  new ArrayList<Map<String, Object>>();
-            String subSqlSelect = null;
             int i = 0;
 
             while(rs.next()){
