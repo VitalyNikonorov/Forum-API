@@ -84,13 +84,13 @@ public class CreatePostServlet  extends HttpServlet {
 
         long parentId = 0;
         if (jsonRequest.has("parent")) {
-            parentId = jsonRequest.get("parent") == null ? 0 : (long)jsonRequest.get("parent") ;
+            parentId = jsonRequest.get("parent") == null ? 0 : jsonRequest.getLong("parent") ;
         }
 
         String forum = (String)jsonRequest.get("forum");
         String user = (String)jsonRequest.get("user");
         String messagePost = (String)jsonRequest.get("message");
-        long thread =  (long)jsonRequest.get("thread");
+        long thread =  jsonRequest.getLong("thread");
         String date = (String)jsonRequest.get("date");
         int result;
 
@@ -146,7 +146,7 @@ public class CreatePostServlet  extends HttpServlet {
                             int id = -1;
 
                             try {
-                                pstmt = connection.prepareStatement("SELECT * FROM post WHERE forum=? AND user=? AND date_of_creating=?");
+                                pstmt = connection.prepareStatement("SELECT * FROM post WHERE forum=? AND user_email=? AND date_of_creating=?");
                                 pstmt.setString(1, forum);
                                 pstmt.setString(2, user);
                                 pstmt.setString(3, date);
@@ -256,11 +256,11 @@ public class CreatePostServlet  extends HttpServlet {
         pstmt.setString(1, email);
 
         ResultSet rs = null;
-        if (rs.next()) response = true;
         rs = pstmt.executeQuery();
-
+        if (rs.next()) response = true;
+        rs.close();
+        rs = null;
         return response;
-
     }
 
 
@@ -275,8 +275,6 @@ public class CreatePostServlet  extends HttpServlet {
         if (rs.next()) response = true;
         rs.close();
         rs = null;
-
         return response;
-
     }
 }

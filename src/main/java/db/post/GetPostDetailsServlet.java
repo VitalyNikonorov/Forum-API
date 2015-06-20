@@ -94,10 +94,10 @@ public class GetPostDetailsServlet extends HttpServlet {
             resultSet = pstmt.executeQuery();
 
             if (resultSet.next()) {
-                data.put("date", resultSet.getString("date").substring(0, 19));
+                data.put("date", resultSet.getString("date_of_creating").substring(0, 19));
                 if (forum) {
                     //////////// TODO в функцию
-                    data.put("forum", getForumDetails(resultSet.getString("short_name")));
+                    data.put("forum", getForumDetails(resultSet.getString("forum")));
                 } else {
                     data.put("forum", resultSet.getString("forum"));
                 }
@@ -177,6 +177,9 @@ public class GetPostDetailsServlet extends HttpServlet {
                 data = null;
             }
 
+            resultSet.close();
+            resultSet = null;
+
         }catch(SQLException ex) {
             System.out.println("SQLException caught");
             System.out.println("---");
@@ -187,7 +190,7 @@ public class GetPostDetailsServlet extends HttpServlet {
                 System.out.println(ex.getMessage());
             }
             System.out.println("---");
-            ex = ex.getNextException();
+            ex = ex.getNextException(); //TODO
         }
         return data;
     }
