@@ -3,6 +3,7 @@ package main;
 import admin.AdminPageServlet;
 import db.ClearServlet;
 import db.forum.CreateForumServlet;
+import db.forum.ForumListPostsServlet;
 import db.forum.GetForumDetailsServlet;
 import db.post.CreatePostServlet;
 import db.post.GetPostDetailsServlet;
@@ -84,10 +85,12 @@ public class Main {
         //FORUM
         Servlet createForum = new CreateForumServlet();
         Servlet getForumDetails = new GetForumDetailsServlet(connection);
+        Servlet forumListPostServlet = new ForumListPostsServlet(connection);
 
         //CONTEXT
         context.addServlet(new ServletHolder(createForum), "/db/api/forum/create/");
         context.addServlet(new ServletHolder(getForumDetails), "/db/api/forum/details/");
+        context.addServlet(new ServletHolder(forumListPostServlet), "/db/api/forum/listPosts/");
 
         //THREAD
         Servlet createThread = new CreateThreadServlet();

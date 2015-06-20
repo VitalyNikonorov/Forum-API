@@ -7,10 +7,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.*;
 
 /**
@@ -25,7 +22,7 @@ public class UserListPostsServlet extends HttpServlet {
 
 
         JSONObject jsonResponse = new JSONObject();
-/*
+
         String userEmail = request.getParameter("user");
         String limit = request.getParameter("limit");
         String order = request.getParameter("order");
@@ -45,8 +42,9 @@ public class UserListPostsServlet extends HttpServlet {
             Statement sqlQuery = connection.createStatement();
             ResultSet rs = null;
 
-            String sqlSelect = "SELECT P.*, U.email FROM post P JOIN users U ON P.user=U.id WHERE U.email=\'" +userEmail+ "\'";
-            sqlSelect = sqlSelect + " ORDER BY " +" P.date " +order;
+            String sqlSelect = "SELECT * FROM post WHERE user_email=\'" +userEmail+ "\' AND date_of_creating > \'" + since +"\'" ;
+            sqlSelect = sqlSelect + " ORDER BY " + " date_of_creating " +order;
+
             if (limit != null){
                 sqlSelect = sqlSelect + " LIMIT " +limit +";";
             }else{
@@ -55,61 +53,40 @@ public class UserListPostsServlet extends HttpServlet {
             rs = sqlQuery.executeQuery(sqlSelect);
             ArrayList<Map<String, Object>> listOfResponseMap =  new ArrayList<Map<String, Object>>();
             String subSqlSelect = null;
-            ResultSet rsSub = null;
             int i = 0;
 
             while(rs.next()){
                 //Parse values
                 Map<String, Object> tempResponseMap =  new HashMap<>();
-                tempResponseMap.put("date", rs.getString("date")); //Почему-то режет последний символ
-                tempResponseMap.put("id", new Integer(rs.getString("id")));
+                tempResponseMap.put("date", rs.getString("date_of_creating").substring(0, 19));
                 tempResponseMap.put("forum", rs.getString("forum"));
-                tempResponseMap.put("isApproved", new Boolean(rs.getString("isApproved")));
-                tempResponseMap.put("isDeleted", new Boolean(rs.getString("isDeleted")));
-                tempResponseMap.put("isEdited", new Boolean(rs.getString("isEdited")));
-                tempResponseMap.put("isHighlighted", new Boolean(rs.getString("isHighlighted")));
-                tempResponseMap.put("isSpam", new Boolean(rs.getString("isSpam")));
+                tempResponseMap.put("id", rs.getInt("id"));
+                tempResponseMap.put("isApproved", rs.getBoolean("isApproved"));
+                tempResponseMap.put("isHighlighted", rs.getInt("isHighlighted") == 1 ? true : false);
+                tempResponseMap.put("isEdited", rs.getBoolean("isEdited"));
+                tempResponseMap.put("isSpam", rs.getBoolean("isSpam"));
+                tempResponseMap.put("isDeleted", rs.getBoolean("isDeleted"));
                 tempResponseMap.put("message", rs.getString("message"));
-                if( rs.getString("parent") != null) {
-                    tempResponseMap.put("parent", new Integer(rs.getString("parent")));
-                }else{
-                    tempResponseMap.put("parent", null);
+                tempResponseMap.put("likes", rs.getInt("likes"));
+                tempResponseMap.put("dislikes", rs.getInt("dislikes"));
+                tempResponseMap.put("points", rs.getInt("likes") - rs.getInt("dislikes"));
+                String temp = rs.getString("parent");
+
+                if (temp.equals("")) {
+                    tempResponseMap.put("parent", JSONObject.NULL);
+                }else {
+                    int indexLast = temp.lastIndexOf("_");
+                    tempResponseMap.put("parent", Integer.parseInt(temp.substring(indexLast + 1)));
                 }
-                tempResponseMap.put("thread",  new Integer(rs.getString("thread")));
-                tempResponseMap.put("user", rs.getString("email"));
+                tempResponseMap.put("thread", rs.getInt("thread"));
+                tempResponseMap.put("user", rs.getString("user_email"));
 
                 listOfResponseMap.add(i, tempResponseMap);
                 i++;
             }
 
-            for (int j=0; j<i; j++){
-                //Likes
-                subSqlSelect = "SELECT COUNT(id) AS likes FROM likes L JOIN users U ON L.userid=U.id WHERE L.postid=" + listOfResponseMap.get(j).get("id") +";";
-
-                rsSub = sqlQuery.executeQuery(subSqlSelect);
-                int likes = 0, dislikes = 0;
-                while(rsSub.next()){
-                    likes = new Integer(rsSub.getString("likes"));
-                    listOfResponseMap.get(j).put("likes", likes);
-                }
-
-                //dislikes
-                subSqlSelect = "SELECT COUNT(id) AS dislikes FROM dislikes D JOIN users U ON D.userid=U.id WHERE D.postid=" + listOfResponseMap.get(j).get("id") +";";
-                rsSub = sqlQuery.executeQuery(subSqlSelect);
-
-                while(rsSub.next()){
-                    dislikes = new Integer(rsSub.getString("dislikes"));
-                    listOfResponseMap.get(j).put("dislikes", dislikes);
-                }
-                listOfResponseMap.get(j).put("points", (likes-dislikes));
-            }
-
-
-
             jsonResponse.put("code", 0);
             jsonResponse.put("response", listOfResponseMap);
-
-            rsSub.close(); rsSub=null;
             rs.close(); rs=null;
         }
         catch (SQLException ex){
@@ -125,7 +102,7 @@ public class UserListPostsServlet extends HttpServlet {
         }
         catch (Exception ex){
             System.out.println("Other Error in UserListPostsServlet.");
-        }*/
+        }
         //Database!!!!
         response.getWriter().println(jsonResponse);
     }

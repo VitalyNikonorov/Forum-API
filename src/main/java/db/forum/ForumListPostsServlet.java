@@ -1,4 +1,4 @@
-package db.post;
+package db.forum;
 
 import db.user.UserInfo;
 import org.json.JSONObject;
@@ -9,75 +9,111 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.*;
+import java.util.ArrayList ;
 import java.util.Map;
 
-/**
- * Created by vitaly on 20.06.15.
- */
-public class GetPostDetailsServlet extends HttpServlet {
+public class ForumListPostsServlet extends HttpServlet {
 
     private Connection connection;
-
-    public GetPostDetailsServlet(Connection connection){
-        this.connection = connection;
-
-    }
+    public ForumListPostsServlet(Connection connection){ this.connection = connection; }
 
     public void doGet(HttpServletRequest request,
                       HttpServletResponse response) throws ServletException, IOException {
+
         Map<String, String[]> paramMap = request.getParameterMap();
-        int id = Integer.parseInt(paramMap.containsKey("post") ? paramMap.get("post")[0] : "0");
+        String forum = paramMap.containsKey("forum") ? paramMap.get("forum")[0] : null;
+        String order = paramMap.containsKey("order") ? paramMap.get("order")[0] : null;
+        String since = paramMap.containsKey("since") ? paramMap.get("since")[0] : null;
+        String limit = paramMap.containsKey("limit") ? paramMap.get("limit")[0] : null;
         String[] related = paramMap.get("related");
+
+        short status = 0;
+        String message = "";
+        if(forum == null) {
+            status = 3;
+            message = "Incorrect JSON";
+        }
+
+        StringBuilder query = new StringBuilder();
+        ResultSet resultSet = null;
         try {
-            createResponse(response, id, related);
+            Statement sqlQuery = connection.createStatement();
+
+
+            String sqlSelect = "SELECT * FROM post WHERE forum=\'" +forum+ "\' AND date_of_creating > \'" + since +"\'" ;
+            sqlSelect = sqlSelect + " ORDER BY " + " date_of_creating " +order;
+
+            if (limit != null){
+                sqlSelect = sqlSelect + " LIMIT " +limit +";";
+            }else{
+                sqlSelect = sqlSelect + ";";
+            }
+
+            if (status == 0) {
+                resultSet = sqlQuery.executeQuery(sqlSelect);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+        try {
+            createResponse(response, status, message, resultSet, related);
+
+            resultSet.close();
+            resultSet = null;
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    private void createResponse(HttpServletResponse response, int id, String[] related) throws IOException, SQLException {
+    private void createResponse(HttpServletResponse response, short status, String message, ResultSet resultSet, String[] related) throws IOException, SQLException {
+
         response.setContentType("json;charset=UTF-8");
         response.setHeader("Cache-Control", "no-cache");
         response.setStatus(HttpServletResponse.SC_OK);
 
         JSONObject obj = new JSONObject();
-        boolean user = false;
-        boolean forum = false;
-        boolean thread = false;
-        String message = "";
-        short status = 0;
+        JSONObject data = new JSONObject();
 
-        if (id == 0) {
-            status = 3;
-            message = "Incorrect JSON";
-        }
+        ArrayList<JSONObject> listOfResponseMap =  new ArrayList<JSONObject>();
 
-        if (related != null) {
-            for (String aRelated : related) {
-                switch (aRelated) {
-                    case "user":
-                        user = true;
-                        break;
-                    case "forum":
-                        forum = true;
-                        break;
-                    case "thread":
-                        thread = true;
-                        break;
-                    default:
-                        status = 3;
-                        message = "Incorrect JSON";
+        if (status != 0 || resultSet == null) {
+            data.put("error", message);
+            obj.put("response", data);
+        } else {
+            boolean user = false;
+            boolean forum = false;
+            boolean thread = false;
+            if (related != null) {
+                for (String aRelated : related) {
+                    switch (aRelated) {
+                        case "user":
+                            user = true;
+                            break;
+                        case "forum":
+                            forum = true;
+                            break;
+                        case "thread":
+                            thread = true;
+                            break;
+                        default:
+                            status = 3;
+                            message = "Incorrect JSON";
+                    }
                 }
             }
+
+            if (status == 0) {
+                int i = 0;
+                while (resultSet.next()) {
+                    listOfResponseMap.add(i, getPostDetails(resultSet.getInt("id"), user, thread, forum));
+                    i++;
+                }
+                obj.put("response", listOfResponseMap);
+            } else {
+                data.put("error", message);
+                obj.put("response", data);
+            }
         }
-        JSONObject data;
-        data = getPostDetails(id, user, thread, forum);
-        if (data == null) {
-            status = 1;
-            message = "There is no such post";
-        }
-        obj.put("response", status == 0 ? data: message);
         obj.put("code", status);
         response.getWriter().write(obj.toString());
     }
@@ -238,5 +274,7 @@ public class GetPostDetailsServlet extends HttpServlet {
 
         return data;
     }
+
+
 
 }
