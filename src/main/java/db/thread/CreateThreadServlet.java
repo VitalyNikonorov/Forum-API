@@ -60,24 +60,35 @@ public class CreateThreadServlet extends HttpServlet {
 
         JSONObject jsonRequest = new JSONObject(jb.toString());
 
-        if (jsonRequest.get("user") == null || jsonRequest.get("name") == null || jsonRequest.get("short_name") == null) {
-            status = 3;
-            message = "Wrong Request";
+        boolean isDeleted = false;
+        if (jsonRequest.has("isDeleted")) {
+            isDeleted = jsonRequest.getBoolean("isDeleted");
+        }
+
+        boolean isClosed = false;
+        if (jsonRequest.has("isClosed")) {
+            isClosed = jsonRequest.getBoolean("isClosed");
         }
 
         try {
             PreparedStatement pstmt = connection.prepareStatement(
-                    "INSERT INTO forum (user_email, name, short_name) VALUES (?, ?, ?);");
+                    "INSERT INTO thread (isDeleted, isClosed, user_email, forum, message, title, slug, date_of_creating) VALUES (?, ?, ?, ?, ?, ?, ?, ?);");
 
-            pstmt.setString(1, jsonRequest.getString("user"));
-            pstmt.setString(2, jsonRequest.getString("name"));
-            pstmt.setString(3, jsonRequest.getString("short_name"));
+            pstmt.setBoolean(1, isDeleted);
+            pstmt.setBoolean(2, isClosed);
+            pstmt.setString(3, (String) jsonRequest.get("user"));
+            pstmt.setString(4, (String)jsonRequest.get("forum"));
+            pstmt.setString(5, (String)jsonRequest.get("message"));
+            pstmt.setString(6, (String)jsonRequest.get("title"));
+            pstmt.setString(7, (String)jsonRequest.get("slug"));
+            pstmt.setString(8, (String)jsonRequest.get("date"));
 
             pstmt.executeUpdate();
             pstmt.close();
 
-            pstmt = connection.prepareStatement("SELECT * FROM forum WHERE short_name=?");
-            pstmt.setString(1, jsonRequest.getString("short_name"));
+            pstmt = connection.prepareStatement("SELECT * FROM thread WHERE forum=? AND slug = ?");
+            pstmt.setString(1, (String) jsonRequest.get("forum"));
+            pstmt.setString(2, (String) jsonRequest.get("slug"));
 
             ResultSet rs = null;
             rs = pstmt.executeQuery();
@@ -87,13 +98,19 @@ public class CreateThreadServlet extends HttpServlet {
                 if (rs.next()) {
                     //Parse values
                     responseMap.put("id", rs.getInt("id"));
-                    responseMap.put("name", rs.getString("name"));
-                    responseMap.put("short_name", rs.getString("short_name"));
+                    responseMap.put("isDeleted", rs.getString("isDeleted").equals("1")?true:false);
+                    responseMap.put("isClosed", rs.getString("isClosed").equals("1")?true:false);
                     responseMap.put("user", rs.getString("user_email"));
+                    responseMap.put("forum", rs.getString("forum"));
+                    responseMap.put("message", rs.getString("message"));
+                    responseMap.put("title", rs.getString("title"));
+                    responseMap.put("slug", rs.getString("slug"));
+                    responseMap.put("date", rs.getString("date_of_creating"));
+
                 }
             } else {
                 status = 3;
-                message = "There is NO FORUM for this request";
+                message = "There is NO THREAD for this request";
             }
             rs.close();
             rs = null;
@@ -115,8 +132,4 @@ public class CreateThreadServlet extends HttpServlet {
         }
         response.getWriter().println(jsonResponse);
     }
-
-
-
-
 }

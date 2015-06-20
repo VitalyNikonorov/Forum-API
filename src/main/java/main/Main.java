@@ -4,6 +4,8 @@ import admin.AdminPageServlet;
 import db.ClearServlet;
 import db.forum.CreateForumServlet;
 import db.forum.GetForumDetailsServlet;
+import db.thread.CreateThreadServlet;
+import db.thread.GetThreadDetailsServlet;
 import db.user.*;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -84,6 +86,14 @@ public class Main {
         //CONTEXT
         context.addServlet(new ServletHolder(createForum), "/db/api/forum/create/");
         context.addServlet(new ServletHolder(getForumDetails), "/db/api/forum/details/");
+
+        //THREAD
+        Servlet createThread = new CreateThreadServlet();
+        Servlet getThreadDetails = new GetThreadDetailsServlet(connection);
+
+        //CONTEXT
+        context.addServlet(new ServletHolder(createThread), "/db/api/thread/create/");
+        context.addServlet(new ServletHolder(getThreadDetails), "/db/api/thread/details/");
 
 
         //Static

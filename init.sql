@@ -1,3 +1,4 @@
+drop database testdb;
 create database testdb;
 
 use testdb;
@@ -15,9 +16,7 @@ primary key (`id`)
 create table `follow` (
 `follower_id` mediumint unsigned not null,
 `followee_id` mediumint unsigned not null,
-primary key (`follower_id`, `followee_id`),
-foreign key(`follower_id`) references `users`(id),
-foreign key(`followee_id`) references `users`(id)
+primary key (`follower_id`, `followee_id`)
 ) engine=InnoDB default charset=cp1251;
 
 create table `forum` (
@@ -26,25 +25,22 @@ create table `forum` (
 `name` varchar(255) not null unique ,
 `short_name` varchar(255) not null unique,
 `date_of_creating` TIMESTAMP default NOW(),
-primary key (`id`),
-foreign key(`user_email`) references `users`(email)
+primary key (`id`)
 ) engine=InnoDB default charset=cp1251;
 
 create table `thread` (
 `id` mediumint unsigned auto_increment not null unique,
 `isDeleted` tinyint unsigned not null default '0',
 `isClosed` tinyint unsigned not null default '0',
-`founder_id` mediumint unsigned not null,
-`forum_id` mediumint unsigned not null,
+`user_email` char(32) not null,
+`forum` varchar(255) not null,
 `message` LONGTEXT not null,
 `title` char(255) not null,
 `slug` char(255) not null,
 `date_of_creating` TIMESTAMP default NOW(),
 `likes` mediumint default 0,
 `dislikes` mediumint default 0,
-primary key (`forum_id`, `slug`),
-foreign key(`founder_id`) references `users`(id),
-foreign key(`forum_id`) references `forum`(id)
+primary key (`id`)
 ) engine=InnoDB default charset=cp1251;
 
 create table `post` (
