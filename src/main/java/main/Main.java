@@ -5,6 +5,7 @@ import db.ClearServlet;
 import db.forum.*;
 import db.post.CreatePostServlet;
 import db.post.GetPostDetailsServlet;
+import db.post.ListPostsServlet;
 import db.thread.CreateThreadServlet;
 import db.thread.GetThreadDetailsServlet;
 import db.user.*;
@@ -66,7 +67,7 @@ public class Main {
         Servlet followUser = new FollowUserServlet(connection);
         Servlet listFollowers = new UserListFollowersServlet(connection);
         Servlet listFollowing = new UserListFollowingServlet(connection);
-        Servlet listPosts = new UserListPostsServlet(connection);
+        Servlet userListPosts = new UserListPostsServlet(connection);
         Servlet unfollowUser = new UnfollowUserServlet(connection);
         Servlet updateProfile = new UpdateProfileServlet(connection);
             //CONTEXT
@@ -75,7 +76,7 @@ public class Main {
         context.addServlet(new ServletHolder(followUser), "/db/api/user/follow/");
         context.addServlet(new ServletHolder(listFollowers), "/db/api/user/listFollowers/");
         context.addServlet(new ServletHolder(listFollowing), "/db/api/user/listFollowing/");
-        context.addServlet(new ServletHolder(listPosts), "/db/api/user/listPosts/");
+        context.addServlet(new ServletHolder(userListPosts), "/db/api/user/listPosts/");
         context.addServlet(new ServletHolder(unfollowUser), "/db/api/user/unfollow/");
         context.addServlet(new ServletHolder(updateProfile), "/db/api/user/updateProfile/");
 
@@ -105,11 +106,12 @@ public class Main {
         //POST
         Servlet createPost = new CreatePostServlet();
         Servlet getPostDetails = new GetPostDetailsServlet(connection);
+        Servlet listPosts = new ListPostsServlet(connection);
 
         //CONTEXT
         context.addServlet(new ServletHolder(createPost), "/db/api/post/create/");
         context.addServlet(new ServletHolder(getPostDetails), "/db/api/post/details/");
-
+        context.addServlet(new ServletHolder(listPosts), "/db/api/post/list/");
 
         //Static
         ResourceHandler resource_handler = new ResourceHandler();

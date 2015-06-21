@@ -34,7 +34,6 @@ public class ForumListPostsServlet extends HttpServlet {
             message = "Incorrect JSON";
         }
 
-        StringBuilder query = new StringBuilder();
         ResultSet resultSet = null;
         try {
             Statement sqlQuery = connection.createStatement();
