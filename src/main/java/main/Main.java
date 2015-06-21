@@ -107,6 +107,7 @@ public class Main {
         Servlet listPosts = new ListPostsServlet(connection);
         Servlet removePost = new RemovePostServlet(connection);
         Servlet restorePost = new RestorePostServlet(connection);
+        Servlet updatePost = new UpdatePostServlet(connection);
 
         //CONTEXT
         context.addServlet(new ServletHolder(createPost), "/db/api/post/create/");
@@ -114,6 +115,7 @@ public class Main {
         context.addServlet(new ServletHolder(listPosts), "/db/api/post/list/");
         context.addServlet(new ServletHolder(removePost), "/db/api/post/remove/");
         context.addServlet(new ServletHolder(restorePost), "/db/api/post/restore/");
+        context.addServlet(new ServletHolder(updatePost), "/db/api/post/update/");
 
         //Static
         ResourceHandler resource_handler = new ResourceHandler();
