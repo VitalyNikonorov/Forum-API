@@ -6,6 +6,7 @@ import db.forum.*;
 import db.post.CreatePostServlet;
 import db.post.GetPostDetailsServlet;
 import db.post.ListPostsServlet;
+import db.post.RemovePostServlet;
 import db.thread.CreateThreadServlet;
 import db.thread.GetThreadDetailsServlet;
 import db.user.*;
@@ -107,11 +108,13 @@ public class Main {
         Servlet createPost = new CreatePostServlet();
         Servlet getPostDetails = new GetPostDetailsServlet(connection);
         Servlet listPosts = new ListPostsServlet(connection);
+        Servlet removePosts = new RemovePostServlet(connection);
 
         //CONTEXT
         context.addServlet(new ServletHolder(createPost), "/db/api/post/create/");
         context.addServlet(new ServletHolder(getPostDetails), "/db/api/post/details/");
         context.addServlet(new ServletHolder(listPosts), "/db/api/post/list/");
+        context.addServlet(new ServletHolder(removePosts), "/db/api/post/remove/");
 
         //Static
         ResourceHandler resource_handler = new ResourceHandler();
