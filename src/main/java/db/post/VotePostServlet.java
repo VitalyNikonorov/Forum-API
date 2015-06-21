@@ -1,6 +1,5 @@
 package db.post;
 
-import db.user.UserInfo;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -12,18 +11,15 @@ import java.io.IOException;
 import java.sql.*;
 
 /**
- * Created by vitaly on 21.06.15.
+ * Created by vitaly on 22.06.15.
  */
-
-public class UpdatePostServlet extends HttpServlet {
-
+public class VotePostServlet extends HttpServlet {
 
     private Connection connection;
-    public UpdatePostServlet(Connection connection){ this.connection = connection; }
+    public VotePostServlet(Connection connection){ this.connection = connection; }
 
     public void doPost(HttpServletRequest request,
-                           HttpServletResponse response) throws ServletException, IOException {
-//TODO -  вынести в отдельную функцию
+                       HttpServletResponse response) throws ServletException, IOException {
         StringBuffer jb = new StringBuffer();
         String line = null;
         try {
@@ -34,61 +30,62 @@ public class UpdatePostServlet extends HttpServlet {
 
         JSONObject JSONRequest = new JSONObject(jb.toString());
 
-            short status = 0;
-            String message = "";
+        short status = 0;
+        String message = "";
 
-            String messagePost = (String) JSONRequest.get("message");;
-            long postId =  JSONRequest.getLong("post");
+        long postId = 0;
+        int vote = 0;
+        postId = JSONRequest.getLong("post");
+        vote = JSONRequest.getInt("vote");
 
-            if (postId == 0 || messagePost == null) {
-                status = 3;
-                message = "Incorect JSON";
-            }
-
-            int result = 0;
-        try {
-            if (status == 0) {
-
-                Statement sqlQuery = connection.createStatement();
-                String query = "update post set message = \'" +messagePost+ "\' where id = " + postId + ";";
-                result = sqlQuery.executeUpdate(query);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        if (vote != 1 && vote != -1 || postId == 0) {
+            status = 3;
+            message = "Wrong JSON";
         }
-            if (result != 1) {
+        try {
+        if (status == 0) {
+            String likes = vote > 0 ? "likes" : "dislikes";
+            String query = "update post set " + likes + " = " + likes + " + 1" + " where id = " + postId + ";";
+            Statement sqlQuery = connection.createStatement();
+            int result = sqlQuery.executeUpdate(query);
+            if (result == 0) {
                 status = 1;
                 message = "There is no such POST";
             }
-            try {
-                createResponse(response, status, message, postId);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+        }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
-        private void createResponse(HttpServletResponse response, short status, String message, long postId) throws IOException, SQLException {
-            response.setContentType("json;charset=UTF-8");
-            response.setHeader("Cache-Control", "no-cache");
-            response.setStatus(HttpServletResponse.SC_OK);
-
-            JSONObject obj = new JSONObject();
-            JSONObject data = null;
-            if (status == 0) {
-                data = getPostDetails((int) postId);
-                if (data == null) {
-                    status = 1;
-                    message = "There is no such POST";
-                }
-            }
-            if (status == 0) {
-                obj.put("response", data);
-            } else {
-                obj.put("error", message);
-            }
-            obj.put("code", status);
-            response.getWriter().write(obj.toString());
+        try {
+            createResponse(response, status, message, postId);
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+    }
+
+    private void createResponse(HttpServletResponse response, short status, String message, long postId) throws IOException, SQLException {
+        response.setContentType("json;charset=UTF-8");
+        response.setHeader("Cache-Control", "no-cache");
+        response.setStatus(HttpServletResponse.SC_OK);
+
+        JSONObject obj = new JSONObject();
+        JSONObject data = null;
+        if (status == 0) {
+            data = getPostDetails((int) postId);
+            if (data == null) {
+                status = 1;
+                message = "There is no such POST";
+            }
+        }
+        if (status == 0) {
+            obj.put("response", data);
+        } else {
+            obj.put("error", message);
+        }
+        obj.put("code", status);
+        response.getWriter().write(obj.toString());
+    }
 
     //TODO - опять копирую((( -  в функцию надо!!!
     public JSONObject getPostDetails(int id) throws IOException, SQLException {
