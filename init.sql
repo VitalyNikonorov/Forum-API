@@ -64,6 +64,5 @@ primary key (`id`)
 create table `subscribtion` (
 `user_id` mediumint unsigned not null,
 `thread_id` mediumint unsigned not null,
-primary key (`user_id`, `thread_id`),
-foreign key(`user_id`) references `users`(id)
+primary key (`user_id`, `thread_id`)
 ) engine=InnoDB default charset=cp1251;

@@ -102,6 +102,7 @@ public class Main {
         Servlet updateThread = new UpdateThreadServlet(connection);
         Servlet voteThread = new VoteThreadServlet(connection);
         Servlet subscribeThread = new SubscribeThreadServlet(connection);
+        Servlet unsubscribeThread = new UnsubscribeThreadServlet(connection);
 
         //CONTEXT
         context.addServlet(new ServletHolder(createThread), "/db/api/thread/create/");
@@ -113,6 +114,7 @@ public class Main {
         context.addServlet(new ServletHolder(updateThread), "/db/api/thread/update/");
         context.addServlet(new ServletHolder(voteThread), "/db/api/thread/vote/");
         context.addServlet(new ServletHolder(subscribeThread), "/db/api/thread/subscribe/");
+        context.addServlet(new ServletHolder(unsubscribeThread), "/db/api/thread/unsubscribe/");
 
         //POST
         Servlet createPost = new CreatePostServlet();
@@ -147,5 +149,3 @@ public class Main {
         server.join();
     }
 }
-
-/*В бд follower id1 - кто подписан, id2 - на кого*/

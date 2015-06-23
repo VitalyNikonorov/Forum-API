@@ -17,10 +17,10 @@ import static db.user.UserInfo.getUserIdByEmail;
 /**
  * Created by vitaly on 23.06.15.
  */
-public class SubscribeThreadServlet extends HttpServlet {
+public class UnsubscribeThreadServlet extends HttpServlet {
 
     private Connection connection;
-    public SubscribeThreadServlet(Connection connection){ this.connection = connection; }
+    public UnsubscribeThreadServlet(Connection connection){ this.connection = connection; }
 
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
@@ -38,7 +38,7 @@ public class SubscribeThreadServlet extends HttpServlet {
         short status = 0;
         String message = "";
 
-        long threadId = 0;
+        long threadId= 0;
         String email = (String)JSONRequest.get("user");
 
         if (JSONRequest.has("thread") && email != null) {
@@ -62,7 +62,7 @@ public class SubscribeThreadServlet extends HttpServlet {
         try {
             if (status == 0) {
                 Statement sqlQuery = connection.createStatement();
-                query = "insert into subscribtion set user_id = " + userId + " , thread_id = " + threadId + ";";
+                query = "delete subscribtion from subscribtion where user_id = " + userId + " and thread_id = " + threadId + ";";
                 result = sqlQuery.executeUpdate(query);
                 if (result == 0) {
                     status = 1;
