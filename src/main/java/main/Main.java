@@ -103,6 +103,7 @@ public class Main {
         Servlet voteThread = new VoteThreadServlet(connection);
         Servlet subscribeThread = new SubscribeThreadServlet(connection);
         Servlet unsubscribeThread = new UnsubscribeThreadServlet(connection);
+        Servlet listThread = new ListThreadsServlet(connection);
 
         //CONTEXT
         context.addServlet(new ServletHolder(createThread), "/db/api/thread/create/");
@@ -115,6 +116,7 @@ public class Main {
         context.addServlet(new ServletHolder(voteThread), "/db/api/thread/vote/");
         context.addServlet(new ServletHolder(subscribeThread), "/db/api/thread/subscribe/");
         context.addServlet(new ServletHolder(unsubscribeThread), "/db/api/thread/unsubscribe/");
+        context.addServlet(new ServletHolder(listThread), "/db/api/thread/list/");
 
         //POST
         Servlet createPost = new CreatePostServlet();
