@@ -2,6 +2,7 @@ package main;
 
 import admin.AdminPageServlet;
 import db.ClearServlet;
+import db.Status;
 import db.forum.*;
 import db.post.*;
 import db.thread.*;
@@ -50,10 +51,12 @@ public class Main {
         //Database!!!!
 
         Servlet clear = new ClearServlet();
+        Servlet status = new Status(connection);
         Servlet AdminPage = new AdminPageServlet(connection);
 
         System.out.append("Starting at port: ").append(String.valueOf(8080)).append('\n');
         context.addServlet(new ServletHolder(clear), "/db/api/clear/");
+        context.addServlet(new ServletHolder(status), "/db/api/status/");
         context.addServlet(new ServletHolder(AdminPage), "/admin");
 
 

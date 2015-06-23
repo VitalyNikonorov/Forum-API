@@ -132,7 +132,6 @@ public class ListPostsThreadServlet extends HttpServlet {
         } else {
             int i = 0;
             while (resultSet.next()) {
-                //listPosts.add(mySqlServer.getPostDetails(resultSet.getInt("id"), false, false, false));
                 listOfResponse.add(i, getPostDetails(resultSet.getInt("id")));
                 i++;
             }

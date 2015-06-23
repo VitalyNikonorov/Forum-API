@@ -145,7 +145,7 @@ public class UserListFollowersServlet extends HttpServlet {
             }
         }
         catch (Exception ex){
-            System.out.println("Other Error in UserListFollowersServlet.");
+            System.out.println("Other Error in Status.");
         }
         //Database!!!!
         response.getWriter().println(jsonResponse);
