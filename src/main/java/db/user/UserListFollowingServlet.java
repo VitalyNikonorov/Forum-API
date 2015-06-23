@@ -123,8 +123,6 @@ public class UserListFollowingServlet extends HttpServlet {
             jsonResponse.put("code", 0);
             jsonResponse.put("response", arrayResponse);
             rs.close(); rs=null;
-            System.out.print("\t++++++\n\t " +request.getQueryString() +
-                    "\n\tQuery: "+sqlSelect +"\n\tAnswer: " + jsonResponse + "\n"+"\t+++++++\n");
         }
         catch (SQLException ex){
             System.out.println("SQLException caught");

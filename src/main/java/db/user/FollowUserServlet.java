@@ -23,7 +23,6 @@ public class FollowUserServlet extends HttpServlet {
 
         StringBuffer jb = new StringBuffer();
         String line = null;
-        Map<String, Object> responseMap =  new HashMap<>();
         JSONObject jsonResponse = new JSONObject();
 
         try {
@@ -59,7 +58,6 @@ public class FollowUserServlet extends HttpServlet {
             //Response
             jsonResponse = UserInfo.getFullUserInfo(connection, jsonObject.get("follower").toString());
             rs.close(); rs=null;
-            System.out.println(jsonObject.get("follower") + "now follow " + jsonObject.get("followee") );
         }
         catch (SQLException ex){
             System.out.println("SQLException caught");

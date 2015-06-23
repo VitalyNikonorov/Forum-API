@@ -62,7 +62,7 @@ public class SubscribeThreadServlet extends HttpServlet {
         try {
             if (status == 0) {
                 Statement sqlQuery = connection.createStatement();
-                query = "insert into subscribtion set user_id = " + userId + " , thread_id = " + threadId + ";";
+                query = "INSERT INTO subscribtion VALUES (" + userId + " , " + threadId + ") ;";
                 result = sqlQuery.executeUpdate(query);
                 if (result == 0) {
                     status = 1;
@@ -71,7 +71,14 @@ public class SubscribeThreadServlet extends HttpServlet {
             }
             createResponse(response, status, message, threadId, email);
         } catch (SQLException e) {
-            e.printStackTrace();
+            if (e.getErrorCode() == 1062) {
+                JSONObject obj = new JSONObject();
+                obj.put("code", 5);
+                obj.put("response", "Duplicate");
+                //System.out.println("OOOOOOOOOOOOOOOOOUUUUUUUUUUUUUCCCCCCCHHHHHHH");
+                response.getWriter().write(obj.toString());
+            }
+            //e.printStackTrace();
         }
     }
 

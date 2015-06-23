@@ -64,7 +64,6 @@ public class UnfollowUserServlet extends HttpServlet {
 
             jsonResponse = UserInfo.getFullUserInfo(connection, jsonObject.get("follower").toString());
             rs.close(); rs=null;
-            System.out.println(jsonObject.get("follower") + "now unfollow " + jsonObject.get("followee"));
         }
         catch (SQLException ex){
             System.out.println("SQLException caught");

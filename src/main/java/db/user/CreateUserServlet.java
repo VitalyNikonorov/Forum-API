@@ -114,12 +114,12 @@ public class CreateUserServlet extends HttpServlet {
             rs.close(); rs= null;
         }
         catch (SQLException ex){
-            System.out.println("SQLException caught");
-            System.out.println("---");
+            //System.out.println("SQLException caught");
+            //System.out.println("---");
             while ( ex != null ){
-                System.out.println("Message   : " + ex.getMessage());
-                System.out.println("SQLState  : " + ex.getSQLState());
-                System.out.println("ErrorCode : " + ex.getErrorCode());
+                //System.out.println("Message   : " + ex.getMessage());
+                //System.out.println("SQLState  : " + ex.getSQLState());
+                //System.out.println("ErrorCode : " + ex.getErrorCode());
                 if (ex.getErrorCode() == 1062) {
                     jsonResponse.put("code", 5);
                     jsonResponse.put("response", "User with email: " + jsonRequest.getString("email") + " is exist");
@@ -128,7 +128,7 @@ public class CreateUserServlet extends HttpServlet {
                     jsonResponse.put("response", "JSON is not correct");
                     System.out.println(ex.getMessage());
                 }
-                System.out.println("---");
+                //System.out.println("---");
                 ex = ex.getNextException();
             }
         }
