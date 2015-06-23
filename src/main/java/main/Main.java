@@ -4,6 +4,7 @@ import admin.AdminPageServlet;
 import db.ClearServlet;
 import db.forum.*;
 import db.post.*;
+import db.thread.CloseThreadServlet;
 import db.thread.CreateThreadServlet;
 import db.thread.GetThreadDetailsServlet;
 import db.user.*;
@@ -96,10 +97,12 @@ public class Main {
         //THREAD
         Servlet createThread = new CreateThreadServlet();
         Servlet getThreadDetails = new GetThreadDetailsServlet(connection);
+        Servlet closeThread = new CloseThreadServlet(connection);
 
         //CONTEXT
         context.addServlet(new ServletHolder(createThread), "/db/api/thread/create/");
         context.addServlet(new ServletHolder(getThreadDetails), "/db/api/thread/details/");
+        context.addServlet(new ServletHolder(closeThread), "/db/api/thread/close/");
 
         //POST
         Servlet createPost = new CreatePostServlet();
