@@ -7,6 +7,7 @@ import db.post.*;
 import db.thread.CloseThreadServlet;
 import db.thread.CreateThreadServlet;
 import db.thread.GetThreadDetailsServlet;
+import db.thread.OpenThreadServlet;
 import db.user.*;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -98,11 +99,13 @@ public class Main {
         Servlet createThread = new CreateThreadServlet();
         Servlet getThreadDetails = new GetThreadDetailsServlet(connection);
         Servlet closeThread = new CloseThreadServlet(connection);
+        Servlet openThread = new OpenThreadServlet(connection);
 
         //CONTEXT
         context.addServlet(new ServletHolder(createThread), "/db/api/thread/create/");
         context.addServlet(new ServletHolder(getThreadDetails), "/db/api/thread/details/");
         context.addServlet(new ServletHolder(closeThread), "/db/api/thread/close/");
+        context.addServlet(new ServletHolder(openThread), "/db/api/thread/open/");
 
         //POST
         Servlet createPost = new CreatePostServlet();
