@@ -104,6 +104,7 @@ public class Main {
         Servlet subscribeThread = new SubscribeThreadServlet(connection);
         Servlet unsubscribeThread = new UnsubscribeThreadServlet(connection);
         Servlet listThread = new ListThreadsServlet(connection);
+        Servlet listPostsThread = new ListPostsThreadServlet(connection);
 
         //CONTEXT
         context.addServlet(new ServletHolder(createThread), "/db/api/thread/create/");
@@ -117,6 +118,7 @@ public class Main {
         context.addServlet(new ServletHolder(subscribeThread), "/db/api/thread/subscribe/");
         context.addServlet(new ServletHolder(unsubscribeThread), "/db/api/thread/unsubscribe/");
         context.addServlet(new ServletHolder(listThread), "/db/api/thread/list/");
+        context.addServlet(new ServletHolder(listPostsThread), "/db/api/thread/listPosts/");
 
         //POST
         Servlet createPost = new CreatePostServlet();

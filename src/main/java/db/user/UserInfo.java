@@ -110,7 +110,7 @@ public class UserInfo {
             i = 0;
             while (rs.next()) {
                 //Parse values
-                subscriptions[i] = new Integer(rs.getString("threadId"));
+                subscriptions[i] = new Integer(rs.getString("thread_id"));
                 i++;
             }
             user.put("subscriptions", subscriptions);
@@ -240,7 +240,7 @@ public class UserInfo {
             i = 0;
             while (rs.next()) {
                 //Parse values
-                subscriptions[i] = new Integer(rs.getString("threadId"));
+                subscriptions[i] = new Integer(rs.getString("thread_id"));
                 i++;
             }
             user.put("subscriptions", subscriptions);
