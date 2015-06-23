@@ -4,10 +4,7 @@ import admin.AdminPageServlet;
 import db.ClearServlet;
 import db.forum.*;
 import db.post.*;
-import db.thread.CloseThreadServlet;
-import db.thread.CreateThreadServlet;
-import db.thread.GetThreadDetailsServlet;
-import db.thread.OpenThreadServlet;
+import db.thread.*;
 import db.user.*;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -100,12 +97,18 @@ public class Main {
         Servlet getThreadDetails = new GetThreadDetailsServlet(connection);
         Servlet closeThread = new CloseThreadServlet(connection);
         Servlet openThread = new OpenThreadServlet(connection);
+        Servlet removeThread = new RemoveThreadServlet(connection);
+        Servlet restoreThread = new RestoreThreadServlet(connection);
+        Servlet updateThread = new UpdateThreadServlet(connection);
 
         //CONTEXT
         context.addServlet(new ServletHolder(createThread), "/db/api/thread/create/");
         context.addServlet(new ServletHolder(getThreadDetails), "/db/api/thread/details/");
         context.addServlet(new ServletHolder(closeThread), "/db/api/thread/close/");
         context.addServlet(new ServletHolder(openThread), "/db/api/thread/open/");
+        context.addServlet(new ServletHolder(removeThread), "/db/api/thread/remove/");
+        context.addServlet(new ServletHolder(restoreThread), "/db/api/thread/restore/");
+        context.addServlet(new ServletHolder(updateThread), "/db/api/thread/update/");
 
         //POST
         Servlet createPost = new CreatePostServlet();
