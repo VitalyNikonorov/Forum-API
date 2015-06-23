@@ -100,6 +100,8 @@ public class Main {
         Servlet removeThread = new RemoveThreadServlet(connection);
         Servlet restoreThread = new RestoreThreadServlet(connection);
         Servlet updateThread = new UpdateThreadServlet(connection);
+        Servlet voteThread = new VoteThreadServlet(connection);
+        Servlet subscribeThread = new SubscribeThreadServlet(connection);
 
         //CONTEXT
         context.addServlet(new ServletHolder(createThread), "/db/api/thread/create/");
@@ -109,6 +111,8 @@ public class Main {
         context.addServlet(new ServletHolder(removeThread), "/db/api/thread/remove/");
         context.addServlet(new ServletHolder(restoreThread), "/db/api/thread/restore/");
         context.addServlet(new ServletHolder(updateThread), "/db/api/thread/update/");
+        context.addServlet(new ServletHolder(voteThread), "/db/api/thread/vote/");
+        context.addServlet(new ServletHolder(subscribeThread), "/db/api/thread/subscribe/");
 
         //POST
         Servlet createPost = new CreatePostServlet();

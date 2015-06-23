@@ -266,4 +266,41 @@ public class UserInfo {
         //Database!!!!
         return user;
     }
+
+
+    public static int getUserIdByEmail(Connection connection, String userMail) {
+        // Database
+        JSONObject jsonResponse = new JSONObject();
+        String userEmail = userMail;
+        int id = -1;
+        try {
+            PreparedStatement pstmt = connection.prepareStatement("SELECT id FROM users WHERE email=?");
+            pstmt.setString(1, userEmail);
+
+            ResultSet rs = null;
+            rs = pstmt.executeQuery();
+
+            while(rs.next()){
+                //Parse values
+                id = new Integer(rs.getString("id"));
+            }
+        }
+        catch (SQLException ex){
+            System.out.println("SQLException caught");
+            System.out.println("---");
+            while ( ex != null ){
+                System.out.println("Message   : " + ex.getMessage());
+                System.out.println("SQLState  : " + ex.getSQLState());
+                System.out.println("ErrorCode : " + ex.getErrorCode());
+                System.out.println("---");
+                ex = ex.getNextException();
+            }
+        }
+        catch (Exception ex){
+            System.out.println("Other Error in userinfo.");
+        }
+        //Database!!!!
+        return id;
+    }
+
 }
