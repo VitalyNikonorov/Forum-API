@@ -93,19 +93,26 @@ public class ListPostsThreadServlet extends HttpServlet {
                         }
                         parents.append(')');
 
-                        resultSetSub.close();
-                        resultSetSub = null;
 
                         query
                                 .append("select id from post where thread = ")
                                 .append(parseInt(thread_str))
                                 .append(" and LEFT(parent, 3) in ").append(parents).append(";");
+
+                        statementSub.close();
+                        statementSub = null;
+
+                        resultSetSub.close();
+                        resultSetSub = null;
                 }
 
                 resultSet = sqlQuery.executeQuery(query.toString());
             }
 
             createResponse(response, status, message, resultSet);
+
+            sqlQuery.close();
+            sqlQuery = null;
 
             resultSet.close();
             resultSet = null;
@@ -203,6 +210,8 @@ public class ListPostsThreadServlet extends HttpServlet {
                 data = null;
             }
 
+            pstmt.close();
+            pstmt = null;
             resultSet.close();
             resultSet = null;
 

@@ -58,6 +58,9 @@ public class ListThreadsServlet extends HttpServlet {
             resultSet = sqlQuery.executeQuery(query);
             createResponse(response, status, message, resultSet);
 
+            sqlQuery.close();
+            sqlQuery = null;
+
             resultSet.close();
             resultSet = null;
         } catch (SQLException e) {
@@ -130,6 +133,12 @@ public class ListThreadsServlet extends HttpServlet {
                         forumData.put("short_name", resultSetForum.getString("short_name"));
                     }
 
+                    pstmtForum.close();
+                    pstmtForum = null;
+
+                    resultSetForum.close();
+                    resultSetForum = null;
+
                 }catch(SQLException ex) {
                     System.out.println("SQLException caught");
                     System.out.println("---");
@@ -166,8 +175,14 @@ public class ListThreadsServlet extends HttpServlet {
             data.put("error", message);
         }
 
+        pstmt.close();
+        pstmt = null;
+
         resultSet.close();
         resultSet = null;
+
+        pstmtCountPosts.close();
+        pstmtCountPosts = null;
 
         resultSetCount.close();
         resultSetCount = null;

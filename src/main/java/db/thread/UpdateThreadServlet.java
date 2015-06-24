@@ -61,8 +61,9 @@ public class UpdateThreadServlet extends HttpServlet {
                     message = "There is no such thread";
                 }
             }
-
             createResponse(response, status, message, thread);
+            sqlQuery.close();
+            sqlQuery = null;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -128,6 +129,11 @@ public class UpdateThreadServlet extends HttpServlet {
                         forumData.put("id", resultSetForum.getInt("id"));
                         forumData.put("short_name", resultSetForum.getString("short_name"));
                     }
+                    pstmtForum.close();
+                    pstmtForum = null;
+
+                    resultSetForum.close();
+                    resultSetForum = null;
 
                 }catch(SQLException ex) {
                     System.out.println("SQLException caught");
@@ -164,6 +170,12 @@ public class UpdateThreadServlet extends HttpServlet {
             String message = "There is no thread with such id!";
             data.put("error", message);
         }
+
+        pstmtCountPosts.close();
+        pstmtCountPosts = null;
+
+        pstmt.close();
+        pstmt = null;
 
         resultSet.close();
         resultSet = null;

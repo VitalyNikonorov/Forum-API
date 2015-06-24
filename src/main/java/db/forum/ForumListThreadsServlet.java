@@ -51,6 +51,8 @@ public class ForumListThreadsServlet extends HttpServlet {
             resultSet = sqlQuery.executeQuery(sqlSelect);
 
             createResponse(response, status, message, resultSet, related);
+
+            sqlQuery.close();
             resultSet.close();
             resultSet = null;
         } catch (SQLException e) {
@@ -145,17 +147,22 @@ public class ForumListThreadsServlet extends HttpServlet {
                         forumData.put("short_name", resultSetForum.getString("short_name"));
                     }
 
+                    pstmtForum.close();
+                    pstmtForum = null;
+                    resultSetForum.close();
+                    resultSetForum = null;
+
                 }catch(SQLException ex) {
-                    System.out.println("SQLException caught");
-                    System.out.println("---");
-                    while (ex != null) {
+                    //System.out.println("SQLException caught");
+                    //System.out.println("---");
+                    /*while (ex != null) {
                         System.out.println("Message   : " + ex.getMessage());
                         System.out.println("SQLState  : " + ex.getSQLState());
                         System.out.println("ErrorCode : " + ex.getErrorCode());
                         System.out.println(ex.getMessage());
                     }
                     System.out.println("---");
-                    ex = ex.getNextException();
+                    ex = ex.getNextException();*/
                 }
                 data.put("forum", forumData);
 
@@ -180,6 +187,13 @@ public class ForumListThreadsServlet extends HttpServlet {
             String message = "There is no thread with such id!";
             data.put("error", message);
         }
+
+
+        pstmt.close();
+        pstmt = null;
+
+        pstmtCountPosts.close();
+        pstmtCountPosts = null;
 
         resultSet.close();
         resultSet = null;

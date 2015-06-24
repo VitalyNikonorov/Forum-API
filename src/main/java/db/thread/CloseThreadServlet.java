@@ -17,7 +17,6 @@ import java.sql.Statement;
  */
 public class CloseThreadServlet extends HttpServlet {
 
-
     private Connection connection;
     public CloseThreadServlet(Connection connection){ this.connection = connection; }
 
@@ -59,6 +58,9 @@ public class CloseThreadServlet extends HttpServlet {
                     message = "There is no such Thread";
                 }
             }
+            sqlQuery.close();
+            sqlQuery = null;
+
             createResponse(response, status, message, threadId);
         } catch (SQLException e) {
         }

@@ -117,11 +117,13 @@ public class UserInfo {
 
             user.put("following", following);
             user.put("followers", followers);
-            rs.close(); rs=null;
 
             jsonResponse.put("code", 0);
             jsonResponse.put("response", user);
 
+            sqlQuery.close();
+            pstmt.close();
+            rs.close(); rs=null;
         }
         catch (SQLException ex){
             System.out.println("SQLException caught");
@@ -151,9 +153,6 @@ public class UserInfo {
 
             ResultSet rs = null;
             rs = pstmt.executeQuery();
-
-
-
             while(rs.next()){
                 //Parse values
                 if( rs.getString("about").equals("")){
@@ -247,6 +246,9 @@ public class UserInfo {
 
             user.put("following", following);
             user.put("followers", followers);
+
+            pstmt.close();
+            sqlQuery.close();
             rs.close(); rs=null;
         }
         catch (SQLException ex){
@@ -280,10 +282,15 @@ public class UserInfo {
             ResultSet rs = null;
             rs = pstmt.executeQuery();
 
+
             while(rs.next()){
                 //Parse values
                 id = new Integer(rs.getString("id"));
             }
+
+            pstmt.close();
+            rs.close();
+            rs = null;
         }
         catch (SQLException ex){
             System.out.println("SQLException caught");

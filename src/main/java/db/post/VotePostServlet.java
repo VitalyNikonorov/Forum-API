@@ -52,6 +52,8 @@ public class VotePostServlet extends HttpServlet {
                 status = 1;
                 message = "There is no such POST";
             }
+            sqlQuery.close();
+            sqlQuery = null;
         }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -125,11 +127,14 @@ public class VotePostServlet extends HttpServlet {
                 data = null;
             }
 
+            pstmt.close();
+            pstmt = null;
+
             resultSet.close();
             resultSet = null;
 
         }catch(SQLException ex) {
-            System.out.println("SQLException caught");
+            /*System.out.println("SQLException caught");
             System.out.println("---");
             while (ex != null) {
                 System.out.println("Message   : " + ex.getMessage());
@@ -138,7 +143,7 @@ public class VotePostServlet extends HttpServlet {
                 System.out.println(ex.getMessage());
             }
             System.out.println("---");
-            ex = ex.getNextException();
+            ex = ex.getNextException();*/
         }
         return data;
     }

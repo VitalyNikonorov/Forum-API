@@ -62,6 +62,8 @@ public class VoteThreadServlet extends HttpServlet {
                 message = "There is no such thread";
             }
             createResponse(response, status, message, threadId);
+            sqlQuery.close();
+            sqlQuery = null;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -133,6 +135,12 @@ public class VoteThreadServlet extends HttpServlet {
                         forumData.put("short_name", resultSetForum.getString("short_name"));
                     }
 
+                    pstmtForum.close();
+                    pstmtForum = null;
+
+                    resultSetForum.close();
+                    resultSetForum = null;
+
                 }catch(SQLException ex) {
                     System.out.println("SQLException caught");
                     System.out.println("---");
@@ -169,14 +177,18 @@ public class VoteThreadServlet extends HttpServlet {
             data.put("error", message);
         }
 
+        pstmt.close();
+        pstmt = null;
+
         resultSet.close();
         resultSet = null;
+
+        pstmtCountPosts.close();
+        pstmtCountPosts = null;
 
         resultSetCount.close();
         resultSetCount = null;
 
         return data;
     }
-
-
 }

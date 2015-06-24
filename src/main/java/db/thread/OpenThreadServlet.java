@@ -61,6 +61,8 @@ public class OpenThreadServlet extends HttpServlet {
                 }
             }
             createResponse(response, status, message, threadId);
+            sqlQuery.close();
+            sqlQuery = null;
         } catch (SQLException e) {
         }
 

@@ -74,6 +74,10 @@ public class ListPostsServlet extends HttpServlet {
                 }
             }
             createResponse(response, status, message, resultSet);
+
+            sqlQuery.close();
+            sqlQuery = null;
+
             resultSet.close();
             resultSet = null;
         } catch (SQLException e) {

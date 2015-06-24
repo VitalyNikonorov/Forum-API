@@ -58,10 +58,10 @@ public class UnsubscribeThreadServlet extends HttpServlet {
             message = "There is no such USER";
         }
 
-
+        Statement sqlQuery = null;
         try {
             if (status == 0) {
-                Statement sqlQuery = connection.createStatement();
+                sqlQuery = connection.createStatement();
                 query = "delete subscribtion from subscribtion where user_id = " + userId + " and thread_id = " + threadId + ";";
                 result = sqlQuery.executeUpdate(query);
                 if (result == 0) {
@@ -70,6 +70,9 @@ public class UnsubscribeThreadServlet extends HttpServlet {
                 }
             }
             createResponse(response, status, message, threadId, email);
+            if (sqlQuery != null){
+                sqlQuery.close();
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }

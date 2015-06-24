@@ -50,7 +50,7 @@ public class Main {
         }
         //Database!!!!
 
-        Servlet clear = new ClearServlet();
+        Servlet clear = new ClearServlet(connection);
         Servlet status = new Status(connection);
         Servlet AdminPage = new AdminPageServlet(connection);
 
@@ -82,7 +82,7 @@ public class Main {
 
 
         //FORUM
-        Servlet createForum = new CreateForumServlet();
+        Servlet createForum = new CreateForumServlet(connection);
         Servlet getForumDetails = new GetForumDetailsServlet(connection);
         Servlet forumListPostServlet = new ForumListPostsServlet(connection);
         Servlet forumListThreadsServlet = new ForumListThreadsServlet(connection);
@@ -96,7 +96,7 @@ public class Main {
         context.addServlet(new ServletHolder(forumListUsersServlet), "/db/api/forum/listUsers/");
 
         //THREAD
-        Servlet createThread = new CreateThreadServlet();
+        Servlet createThread = new CreateThreadServlet(connection);
         Servlet getThreadDetails = new GetThreadDetailsServlet(connection);
         Servlet closeThread = new CloseThreadServlet(connection);
         Servlet openThread = new OpenThreadServlet(connection);
@@ -124,7 +124,7 @@ public class Main {
         context.addServlet(new ServletHolder(listPostsThread), "/db/api/thread/listPosts/");
 
         //POST
-        Servlet createPost = new CreatePostServlet();
+        Servlet createPost = new CreatePostServlet(connection);
         Servlet getPostDetails = new GetPostDetailsServlet(connection);
         Servlet listPosts = new ListPostsServlet(connection);
         Servlet removePost = new RemovePostServlet(connection);
@@ -150,7 +150,6 @@ public class Main {
         handlers.setHandlers(new Handler[]{resource_handler, context});
 
         server.setHandler(handlers);
-
 
         server.start();
         server.join();

@@ -55,6 +55,10 @@ public class ForumListUsersServlet extends HttpServlet {
 
             resultSet = sqlQuery.executeQuery(sqlSelect);
             createResponse(response, status, message, resultSet);
+
+            sqlQuery.close();
+            sqlQuery = null;
+
             resultSet.close();
             resultSet = null;
 

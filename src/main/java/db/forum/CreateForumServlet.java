@@ -16,30 +16,9 @@ import java.util.Map;
  * Created by vitaly on 14.06.15.
  */
 public class CreateForumServlet  extends HttpServlet {
+
     private Connection connection;
-
-    public CreateForumServlet(){
-        try {
-            DriverManager.registerDriver(new com.mysql.jdbc.Driver());
-            this.connection = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/testdb","root", "");
-        }
-        catch (SQLException ex){
-            System.out.println("SQLException caught");
-            System.out.println("---");
-            while ( ex != null ){
-                System.out.println("Message   : " + ex.getMessage());
-                System.out.println("SQLState  : " + ex.getSQLState());
-                System.out.println("ErrorCode : " + ex.getErrorCode());
-                System.out.println("---");
-                ex = ex.getNextException();
-            }
-        }
-        catch (Exception ex){
-            System.out.println("Error in CreateForumServlet while taking connection");
-        }
-
-    }
+    public CreateForumServlet(Connection connection){ this.connection = connection; }
 
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
@@ -75,7 +54,6 @@ public class CreateForumServlet  extends HttpServlet {
             pstmt.setString(3, jsonRequest.getString("short_name"));
 
             pstmt.executeUpdate();
-            pstmt.close();
 
             pstmt = connection.prepareStatement("SELECT * FROM forum WHERE short_name=?");
             pstmt.setString(1, jsonRequest.getString("short_name"));
@@ -96,14 +74,17 @@ public class CreateForumServlet  extends HttpServlet {
                 status = 3;
                 message = "There is NO FORUM for this request";
             }
-                rs.close();
-                rs = null;
+
+            pstmt.close();
+            pstmt=null;
+            rs.close();
+            rs = null;
 
             jsonResponse.put("response", status == 0? responseMap : message);
             jsonResponse.put("code", status);
 
         }catch(SQLException ex){
-            System.out.println("SQLException caught");
+            /*System.out.println("SQLException caught");
             System.out.println("---");
             while (ex != null) {
                 System.out.println("Message   : " + ex.getMessage());
@@ -112,7 +93,7 @@ public class CreateForumServlet  extends HttpServlet {
                 System.out.println(ex.getMessage());
             }
             System.out.println("---");
-            ex = ex.getNextException();
+            ex = ex.getNextException();*/
         }
 
         response.getWriter().println(jsonResponse);

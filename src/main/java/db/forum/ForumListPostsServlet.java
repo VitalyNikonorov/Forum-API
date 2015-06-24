@@ -35,9 +35,9 @@ public class ForumListPostsServlet extends HttpServlet {
         }
 
         ResultSet resultSet = null;
+        Statement sqlQuery = null;
         try {
-            Statement sqlQuery = connection.createStatement();
-
+            sqlQuery = connection.createStatement();
 
             String sqlSelect = "SELECT * FROM post WHERE forum=\'" +forum+ "\' AND date_of_creating > \'" + since +"\'" ;
             sqlSelect = sqlSelect + " ORDER BY " + " date_of_creating " +order;
@@ -57,6 +57,9 @@ public class ForumListPostsServlet extends HttpServlet {
         try {
             createResponse(response, status, message, resultSet, related);
 
+            if(sqlQuery!=null){
+                sqlQuery.close();
+            }
             resultSet.close();
             resultSet = null;
         } catch (SQLException e) {
@@ -264,6 +267,12 @@ public class ForumListPostsServlet extends HttpServlet {
             String message = "There is no thread with such id!";
             data.put("error", message);
         }
+
+        pstmt.close();
+        pstmt = null;
+
+        pstmtCountPosts.close();
+        pstmtCountPosts = null;
 
         resultSet.close();
         resultSet = null;

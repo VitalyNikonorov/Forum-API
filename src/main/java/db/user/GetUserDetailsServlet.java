@@ -27,7 +27,7 @@ public class GetUserDetailsServlet extends HttpServlet {
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("application/json;charset=utf-8");
         String userEmail = request.getParameter("user");
-        JSONObject jsonResponse = UserInfo.getFullUserInfo(connection,userEmail);
+        JSONObject jsonResponse = db.user.UserInfo.getFullUserInfo(connection, userEmail);
         response.getWriter().println(jsonResponse);
     }
 }

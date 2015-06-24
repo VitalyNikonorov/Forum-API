@@ -84,18 +84,24 @@ public class GetForumDetailsServlet extends HttpServlet {
             } else {
                 data = null;
             }
+            pstmt.close();
+            pstmt = null;
+
+            resultSet.close();
+            resultSet = null;
+
 
             }catch(SQLException ex) {
-            System.out.println("SQLException caught");
-            System.out.println("---");
-            while (ex != null) {
+            //System.out.println("SQLException caught");
+            //System.out.println("---");
+            /*while (ex != null) {
                 System.out.println("Message   : " + ex.getMessage());
                 System.out.println("SQLState  : " + ex.getSQLState());
                 System.out.println("ErrorCode : " + ex.getErrorCode());
                 System.out.println(ex.getMessage());
             }
             System.out.println("---");
-            ex = ex.getNextException();
+            ex = ex.getNextException();*/
         }
         return data;
     }

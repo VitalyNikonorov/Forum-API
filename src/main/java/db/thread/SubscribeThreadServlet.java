@@ -48,7 +48,6 @@ public class SubscribeThreadServlet extends HttpServlet {
             message = "Incorrect REQUEST";
         }
 
-
         int result = 0;
         String query;
 
@@ -58,10 +57,10 @@ public class SubscribeThreadServlet extends HttpServlet {
             message = "There is no such USER";
         }
 
-
+        Statement sqlQuery = null;
         try {
             if (status == 0) {
-                Statement sqlQuery = connection.createStatement();
+                sqlQuery = connection.createStatement();
                 query = "INSERT INTO subscribtion VALUES (" + userId + " , " + threadId + ") ;";
                 result = sqlQuery.executeUpdate(query);
                 if (result == 0) {
@@ -70,6 +69,10 @@ public class SubscribeThreadServlet extends HttpServlet {
                 }
             }
             createResponse(response, status, message, threadId, email);
+            if(sqlQuery != null){
+                sqlQuery.close();
+                sqlQuery = null;
+            }
         } catch (SQLException e) {
             if (e.getErrorCode() == 1062) {
                 JSONObject obj = new JSONObject();

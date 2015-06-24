@@ -60,7 +60,10 @@ public class RestoreThreadServlet extends HttpServlet {
                     message = "There is no such POST";
                 }
             }
+
             createResponse(response, status, message, threadId);
+            sqlQuery.close();
+            sqlQuery = null;
         } catch (SQLException e) {
         }
 

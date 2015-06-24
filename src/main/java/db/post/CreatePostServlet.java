@@ -16,29 +16,11 @@ import java.util.Map;
  * Created by vitaly on 20.06.15.
  */
 public class CreatePostServlet  extends HttpServlet {
+
     private Connection connection;
 
-    public CreatePostServlet(){
-        try {
-            DriverManager.registerDriver(new com.mysql.jdbc.Driver());
-            this.connection = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/testdb","root", "");
-        }
-        catch (SQLException ex){
-            System.out.println("SQLException caught");
-            System.out.println("---");
-            while ( ex != null ){
-                System.out.println("Message   : " + ex.getMessage());
-                System.out.println("SQLState  : " + ex.getSQLState());
-                System.out.println("ErrorCode : " + ex.getErrorCode());
-                System.out.println("---");
-                ex = ex.getNextException();
-            }
-        }
-        catch (Exception ex){
-            System.out.println("Error in CreateForumServlet while taking connection");
-        }
-
+    public CreatePostServlet(Connection connection){
+        this.connection = connection;
     }
 
     public void doPost(HttpServletRequest request,
@@ -84,7 +66,11 @@ public class CreatePostServlet  extends HttpServlet {
 
         long parentId = 0;
         if (jsonRequest.has("parent")) {
-            parentId = jsonRequest.get("parent") == null ? 0 : jsonRequest.getLong("parent") ;
+            if (jsonRequest.get("parent") == null || jsonRequest.get("parent") == JSONObject.NULL){
+                parentId = 0;
+            }else{
+                parentId = jsonRequest.getLong("parent");
+            }
         }
 
         String forum = (String)jsonRequest.get("forum");
@@ -92,7 +78,6 @@ public class CreatePostServlet  extends HttpServlet {
         String messagePost = (String)jsonRequest.get("message");
         long thread =  jsonRequest.getLong("thread");
         String date = (String)jsonRequest.get("date");
-        int result;
 
         String matPath = "";
         if (parentId != 0) {
@@ -191,6 +176,9 @@ public class CreatePostServlet  extends HttpServlet {
                                 message = "Some error in postCerateServlet";
                             }
 
+                         pstmt.close();
+                         pstmt = null;
+
                         }else {
                             status = 1;
                             message = "There is now this user";
@@ -243,6 +231,9 @@ public class CreatePostServlet  extends HttpServlet {
             e.printStackTrace();
         }
 
+        pstmt.close();
+        pstmt = null;
+
         resultSet.close();
         resultSet = null;
         return parent;
@@ -258,6 +249,8 @@ public class CreatePostServlet  extends HttpServlet {
         ResultSet rs = null;
         rs = pstmt.executeQuery();
         if (rs.next()) response = true;
+
+        pstmt.close();
         rs.close();
         rs = null;
         return response;
@@ -273,6 +266,8 @@ public class CreatePostServlet  extends HttpServlet {
         ResultSet rs = pstmt.executeQuery();
 
         if (rs.next()) response = true;
+
+        pstmt.close();
         rs.close();
         rs = null;
         return response;

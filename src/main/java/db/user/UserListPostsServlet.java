@@ -51,6 +51,7 @@ public class UserListPostsServlet extends HttpServlet {
                 sqlSelect = sqlSelect + ";";
             }
             rs = sqlQuery.executeQuery(sqlSelect);
+
             ArrayList<Map<String, Object>> listOfResponseMap =  new ArrayList<Map<String, Object>>();
             int i = 0;
 
@@ -86,6 +87,7 @@ public class UserListPostsServlet extends HttpServlet {
 
             jsonResponse.put("code", 0);
             jsonResponse.put("response", listOfResponseMap);
+            sqlQuery.close();
             rs.close(); rs=null;
         }
         catch (SQLException ex){

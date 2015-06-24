@@ -117,11 +117,14 @@ public class UserListFollowingServlet extends HttpServlet {
             List<Map<String, Object>> arrayResponse = new ArrayList<Map<String, Object>>();
 
             for (int j = 0; j < size; j++){
-                arrayResponse.add(UserInfo.getFullUserInfoById(connection, followers[j]));
+                arrayResponse.add(db.user.UserInfo.getFullUserInfoById(connection, followers[j]));
             }
 
             jsonResponse.put("code", 0);
             jsonResponse.put("response", arrayResponse);
+
+            pstmt.close();
+            sqlQuery.close();
             rs.close(); rs=null;
         }
         catch (SQLException ex){

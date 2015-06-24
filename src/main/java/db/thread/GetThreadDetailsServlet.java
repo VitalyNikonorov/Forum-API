@@ -110,12 +110,18 @@ public class GetThreadDetailsServlet extends HttpServlet {
                     pstmtForum.setString(1, resultSet.getString("forum"));
                     resultSetForum = pstmtForum.executeQuery();
 
+
                     if (resultSetForum.next()) {
                         forumData.put("user", resultSetForum.getString("user_email"));
                         forumData.put("name", resultSetForum.getString("name"));
                         forumData.put("id", resultSetForum.getInt("id"));
                         forumData.put("short_name", resultSetForum.getString("short_name"));
                     }
+
+                    pstmtForum.close();
+                    pstmtForum = null;
+                    resultSetForum.close();
+                    resultSetForum = null;
 
                 }catch(SQLException ex) {
                     System.out.println("SQLException caught");
@@ -152,6 +158,12 @@ public class GetThreadDetailsServlet extends HttpServlet {
             String message = "There is no thread with such id!";
             data.put("error", message);
         }
+
+        pstmtCountPosts.close();
+        pstmtCountPosts = null;
+
+        pstmt.close();
+        pstmt = null;
 
         resultSet.close();
         resultSet = null;

@@ -56,11 +56,13 @@ public class FollowUserServlet extends HttpServlet {
             sqlQuery.executeUpdate(queryStr);
 
             //Response
-            jsonResponse = UserInfo.getFullUserInfo(connection, jsonObject.get("follower").toString());
+            jsonResponse = db.user.UserInfo.getFullUserInfo(connection, jsonObject.get("follower").toString());
+
+            sqlQuery.close();
             rs.close(); rs=null;
         }
         catch (SQLException ex){
-            System.out.println("SQLException caught");
+           /* System.out.println("SQLException caught");
             System.out.println("---");
             while ( ex != null ){
                 System.out.println("Message   : " + ex.getMessage());
@@ -69,9 +71,10 @@ public class FollowUserServlet extends HttpServlet {
                 System.out.println("---");
                 ex = ex.getNextException();
             }
+            */
         }
         catch (Exception ex){
-            System.out.println("Other Error in FollowUserServlet.");
+            //System.out.println("Other Error in FollowUserServlet.");
         }
         //Database!!!!
 

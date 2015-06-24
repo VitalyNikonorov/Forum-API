@@ -84,13 +84,14 @@ public class CreateUserServlet extends HttpServlet {
             pstmt.setString(5, jsonRequest.getString("isAnonymous"));
 
             pstmt.executeUpdate();
-            pstmt.close();
 
             pstmt = connection.prepareStatement("SELECT * FROM users WHERE email=?");
             pstmt.setString(1, jsonRequest.getString("email"));
 
             ResultSet rs = null;
+
             rs = pstmt.executeQuery();
+
 
             Map<String, Object> user = new HashMap<>();
 
@@ -111,6 +112,8 @@ public class CreateUserServlet extends HttpServlet {
 
             jsonResponse.put("code", 0);
             jsonResponse.put("response", user);
+
+            pstmt.close();
             rs.close(); rs= null;
         }
         catch (SQLException ex){

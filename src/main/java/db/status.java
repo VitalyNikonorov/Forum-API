@@ -75,6 +75,7 @@ public class Status extends HttpServlet {
             jsonResponse.put("code", 0);
             jsonResponse.put("response", responseMap);
 
+            sqlQuery.close();
             rs.close(); rs = null;
         }catch (SQLException ex){
             System.out.println("SQLException caught");

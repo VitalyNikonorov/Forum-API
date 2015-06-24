@@ -54,6 +54,9 @@ public class RemovePostServlet extends HttpServlet {
                 query = "update post set isDeleted = 1 where id = " + postId + ";";
                 result = sqlQuery.executeUpdate(query);
             }
+            sqlQuery.close();
+            sqlQuery = null;
+            
         } catch (SQLException e) {
             e.printStackTrace();
         }

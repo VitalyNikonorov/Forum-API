@@ -62,7 +62,9 @@ public class UnfollowUserServlet extends HttpServlet {
             sqlSelect = "DELETE FROM follow WHERE follower_id=" +follower+ " AND followee_id=" +followee+ ";";
             sqlQuery.executeUpdate(sqlSelect);
 
-            jsonResponse = UserInfo.getFullUserInfo(connection, jsonObject.get("follower").toString());
+
+            jsonResponse = db.user.UserInfo.getFullUserInfo(connection, jsonObject.get("follower").toString());
+            sqlQuery.close();
             rs.close(); rs=null;
         }
         catch (SQLException ex){

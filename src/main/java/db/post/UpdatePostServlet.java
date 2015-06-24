@@ -52,6 +52,9 @@ public class UpdatePostServlet extends HttpServlet {
                 Statement sqlQuery = connection.createStatement();
                 String query = "update post set message = \'" +messagePost+ "\' where id = " + postId + ";";
                 result = sqlQuery.executeUpdate(query);
+
+                sqlQuery.close();
+                sqlQuery = null;
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -128,19 +131,22 @@ public class UpdatePostServlet extends HttpServlet {
                 data = null;
             }
 
+            pstmt.close();
+            pstmt = null;
+
             resultSet.close();
             resultSet = null;
 
         }catch(SQLException ex) {
             System.out.println("SQLException caught");
             System.out.println("---");
-            while (ex != null) {
+            /*while (ex != null) {
                 System.out.println("Message   : " + ex.getMessage());
                 System.out.println("SQLState  : " + ex.getSQLState());
                 System.out.println("ErrorCode : " + ex.getErrorCode());
                 System.out.println(ex.getMessage());
             }
-            System.out.println("---");
+            System.out.println("---");*/
             ex = ex.getNextException();
         }
         return data;
