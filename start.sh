@@ -1,1 +1,1 @@
-java -jar target/L1.2-1.0-jar-with-dependencies.jar 8080 
+java -jar target/VitalyNikonorov-0.0.1-jar-with-dependencies.jar 8080 

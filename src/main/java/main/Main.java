@@ -24,30 +24,10 @@ public class Main {
 
         Server server = new Server(8080);
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        Connection connection = null;
+        DBConnect mysql = new DBConnect();
+        Connection connection = mysql.getConnection();
 
         // DATABASE
-
-        try {
-            DriverManager.registerDriver(new com.mysql.jdbc.Driver());
-            connection = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/testdb","root", "");
-            Statement sqlQuery = connection.createStatement();
-        }
-        catch (SQLException ex){
-            System.out.println("SQLException caught");
-            System.out.println("---");
-            while ( ex != null ){
-                System.out.println("Message   : " + ex.getMessage());
-                System.out.println("SQLState  : " + ex.getSQLState());
-                System.out.println("ErrorCode : " + ex.getErrorCode());
-                System.out.println("---");
-                ex = ex.getNextException();
-            }
-        }
-        catch (Exception ex){
-            System.out.println("Other Error in Main.");
-        }
         //Database!!!!
 
         Servlet clear = new ClearServlet(connection);

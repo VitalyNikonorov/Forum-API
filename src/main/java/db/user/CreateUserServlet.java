@@ -19,7 +19,7 @@ public class CreateUserServlet extends HttpServlet {
     private Connection connection;
 
     public CreateUserServlet(Connection connection){
-            this.connection = connection;
+        this.connection = connection;
     }
 
     private boolean valideteUser(JSONObject jso){

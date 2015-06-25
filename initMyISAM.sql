@@ -1,7 +1,7 @@
-drop database testdb;
-create database testdb;
+#drop database testdb;
+create database testdbmyisam;
 
-use testdb;
+use testdbmyisam;
 
 create table `users` (
 `id` mediumint unsigned auto_increment not null,
@@ -11,13 +11,13 @@ create table `users` (
 `isAnonymous` tinyint unsigned not null default '0',
 `about` TEXT,
 primary key (`id`)
-) engine=InnoDB default charset=cp1251;
+) engine=MyISAM default charset=cp1251;
 
 create table `follow` (
 `follower_id` mediumint unsigned not null,
 `followee_id` mediumint unsigned not null,
 primary key (`follower_id`, `followee_id`)
-) engine=InnoDB default charset=cp1251;
+) engine=MyISAM default charset=cp1251;
 
 create table `forum` (
 `id` mediumint unsigned auto_increment not null,
@@ -26,7 +26,7 @@ create table `forum` (
 `short_name` varchar(255) not null unique,
 `date_of_creating` TIMESTAMP default NOW(),
 primary key (`id`)
-) engine=InnoDB default charset=cp1251;
+) engine=MyISAM default charset=cp1251;
 
 create table `thread` (
 `id` mediumint unsigned auto_increment not null unique,
@@ -41,7 +41,7 @@ create table `thread` (
 `likes` mediumint default 0,
 `dislikes` mediumint default 0,
 primary key (`id`)
-) engine=InnoDB default charset=cp1251;
+) engine=MyISAM default charset=cp1251;
 
 create table `post` (
 `id` mediumint unsigned auto_increment not null,
@@ -59,10 +59,10 @@ create table `post` (
 `likes` mediumint default 0,
 `dislikes` mediumint default 0,
 primary key (`id`)
-) engine=InnoDB default charset=cp1251;
+) engine=MyISAM default charset=cp1251;
 
 create table `subscribtion` (
 `user_id` mediumint unsigned not null,
 `thread_id` mediumint unsigned not null,
 primary key (`user_id`, `thread_id`)
-) engine=InnoDB default charset=cp1251;
+) engine=MyISAM default charset=cp1251;
