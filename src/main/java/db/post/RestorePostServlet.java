@@ -1,11 +1,13 @@
 package db.post;
 
+import main.DBConnectionPool;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.Connection;
@@ -17,8 +19,14 @@ import java.sql.Statement;
  */
 public class RestorePostServlet extends HttpServlet {
 
-    private Connection connection;
-    public RestorePostServlet(Connection connection){ this.connection = connection; }
+    private DataSource dataSource;
+    DBConnectionPool connectionPool;
+    Connection conn = null;
+
+    public RestorePostServlet(DataSource dataSource, DBConnectionPool connectionPool){
+        this.dataSource = dataSource;
+        this.connectionPool = connectionPool;
+    }
 
 
     public void doPost(HttpServletRequest request,
@@ -47,16 +55,16 @@ public class RestorePostServlet extends HttpServlet {
 
         int result = 0;
         String query;
+        Statement sqlQuery = null;
         try {
-            Statement sqlQuery = connection.createStatement();
+            conn = dataSource.getConnection();
+            connectionPool.printStatus();
+            sqlQuery = conn.createStatement();
 
             if (status == 0) {
                 query = "update post set isDeleted = 0 where id = " + postId + ";";
                 result = sqlQuery.executeUpdate(query);
             }
-
-            sqlQuery.close();
-            sqlQuery = null;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -68,6 +76,21 @@ public class RestorePostServlet extends HttpServlet {
             createResponse(response, status, message, postId);
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            if (sqlQuery != null) {
+                try {
+                    sqlQuery.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 

@@ -1,5 +1,6 @@
 package db.user;
 
+import main.DBConnectionPool;
 import org.json.JSONObject;
 import utilities.JsonHelper;
 
@@ -7,6 +8,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.*;
 import java.util.HashMap;
@@ -16,10 +18,14 @@ import java.util.Map;
  * Created by Виталий on 31.05.2015.
  */
 public class CreateUserServlet extends HttpServlet {
-    private Connection connection;
 
-    public CreateUserServlet(Connection connection){
-        this.connection = connection;
+    private DataSource dataSource;
+    DBConnectionPool connectionPool;
+    Connection conn = null;
+
+    public CreateUserServlet(DataSource dataSource, DBConnectionPool connectionPool){
+        this.dataSource = dataSource;
+        this.connectionPool = connectionPool;
     }
 
     private boolean valideteUser(JSONObject jso){
@@ -64,7 +70,11 @@ public class CreateUserServlet extends HttpServlet {
         }
 
         // Database
+        PreparedStatement pstmt = null;
         try {
+            conn = dataSource.getConnection();
+            connectionPool.printStatus();
+
             if (! valideteUser(jsonRequest)){
                 errorResponse(response, jsonResponse);
                 return;
@@ -74,7 +84,7 @@ public class CreateUserServlet extends HttpServlet {
             String email = jsonRequest.getString("email");
             String about = jsonRequest.getString("about");
 
-            PreparedStatement pstmt = connection.prepareStatement(
+            pstmt = conn.prepareStatement(
                     "INSERT INTO users (name, username, email, about, isAnonymous) VALUES (?, ?, ?, ?, ?);");
 
             pstmt.setString(1, name);
@@ -85,7 +95,7 @@ public class CreateUserServlet extends HttpServlet {
 
             pstmt.executeUpdate();
 
-            pstmt = connection.prepareStatement("SELECT * FROM users WHERE email=?");
+            pstmt = conn.prepareStatement("SELECT * FROM users WHERE email=?");
             pstmt.setString(1, jsonRequest.getString("email"));
 
             ResultSet rs = null;
@@ -112,9 +122,6 @@ public class CreateUserServlet extends HttpServlet {
 
             jsonResponse.put("code", 0);
             jsonResponse.put("response", user);
-
-            pstmt.close();
-            rs.close(); rs= null;
         }
         catch (SQLException ex){
             //System.out.println("SQLException caught");
@@ -140,6 +147,21 @@ public class CreateUserServlet extends HttpServlet {
             errorResponse(response, jsonResponse);
             System.out.println("Other Error in CreateUserServlet.");
             return;
+        } finally {
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         //Database!!!!
 

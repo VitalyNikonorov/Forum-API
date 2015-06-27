@@ -1,12 +1,14 @@
 package db.post;
 
 import db.user.UserInfo;
+import main.DBConnectionPool;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.*;
 import java.util.Map;
@@ -16,10 +18,16 @@ import java.util.Map;
  */
 public class GetPostDetailsServlet extends HttpServlet {
 
+    private DataSource dataSource;
+    DBConnectionPool connectionPool;
     private Connection connection;
 
-    public GetPostDetailsServlet(Connection connection){
-        this.connection = connection;
+    PreparedStatement stmt = null;
+
+    public GetPostDetailsServlet(DataSource dataSource, DBConnectionPool connectionPool) throws SQLException {
+        this.dataSource = dataSource;
+        this.connectionPool = connectionPool;
+        this.connection = dataSource.getConnection();
     }
 
     public void doGet(HttpServletRequest request,
@@ -85,12 +93,16 @@ public class GetPostDetailsServlet extends HttpServlet {
     public JSONObject getPostDetails(int id, boolean user, boolean thread, boolean forum) throws IOException, SQLException {
 
         JSONObject data = new JSONObject();
-        ResultSet resultSet;
+        ResultSet resultSet = null;
+        Connection conn = null;
         try {
+            conn = dataSource.getConnection();
+            connectionPool.printStatus();
+            //PreparedStatement pstmt;
 
-            PreparedStatement pstmt = connection.prepareStatement("select * from post where id = ?");
-            pstmt.setInt(1, id);
-            resultSet = pstmt.executeQuery();
+            stmt = conn.prepareStatement("select * from post where id = ?");
+            stmt.setInt(1, id);
+            resultSet = stmt.executeQuery();
 
             if (resultSet.next()) {
                 data.put("date", resultSet.getString("date_of_creating").substring(0, 19));
@@ -135,11 +147,11 @@ public class GetPostDetailsServlet extends HttpServlet {
                 data = null;
             }
 
-            pstmt.close();
-            pstmt = null;
+            //pstmt.close();
+            //pstmt = null;
 
-            resultSet.close();
-            resultSet = null;
+            //resultSet.close();
+            //resultSet = null;
 
         }catch(SQLException ex) {
             /*System.out.println("SQLException caught");
@@ -152,7 +164,22 @@ public class GetPostDetailsServlet extends HttpServlet {
             }
             System.out.println("---");*/
             ex = ex.getNextException();
+        }finally {
+        if (stmt != null) {
+            try {
+                stmt.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
         return data;
     }
@@ -194,7 +221,7 @@ public class GetPostDetailsServlet extends HttpServlet {
             }
             System.out.println("---");*/
             ex = ex.getNextException(); //TODO
-        }
+    }
         return data;
     }
 

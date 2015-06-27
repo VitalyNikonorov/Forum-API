@@ -1,17 +1,16 @@
 package db.post;
 
 import db.user.UserInfo;
+import main.DBConnectionPool;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 
 /**
@@ -20,8 +19,14 @@ import java.util.ArrayList;
 public class ListPostsServlet extends HttpServlet {
 
 
-    private Connection connection;
-    public ListPostsServlet(Connection connection){ this.connection = connection; }
+    private DataSource dataSource;
+    DBConnectionPool connectionPool;
+    Connection conn = null;
+
+    public ListPostsServlet(DataSource dataSource, DBConnectionPool connectionPool) {
+        this.dataSource = dataSource;
+        this.connectionPool = connectionPool;
+    }
 
 
     public void doGet(HttpServletRequest request,
@@ -40,17 +45,25 @@ public class ListPostsServlet extends HttpServlet {
             status = 3;
             message = "Incorrect JSON";
         }
+        Statement sqlQuery = null;
 
         try {
-            Statement sqlQuery = connection.createStatement();
+            conn = dataSource.getConnection();
+            connectionPool.printStatus();
+            sqlQuery = conn.createStatement();
             ResultSet resultSet = null;
             String sqlSelect;
 
             if (status == 0) {
                 if(forum == null) {
 
-                    sqlSelect = "SELECT * FROM post WHERE thread=\'" +thread_str+ "\' AND date_of_creating > \'" + since +"\'" ;
-                    sqlSelect = sqlSelect + " ORDER BY date_of_creating " +order;
+                    sqlSelect = "SELECT * FROM post WHERE thread=\'" +thread_str+ "\' " ;
+
+                    if (since != null) {
+                        sqlSelect = sqlSelect + "AND date_of_creating > '" + since + "\' ";
+                    }
+
+                    sqlSelect = sqlSelect + " ORDER BY " + " date_of_creating " +order;
 
                     if (limit != null){
                         sqlSelect = sqlSelect + " LIMIT " +limit +";";
@@ -61,8 +74,12 @@ public class ListPostsServlet extends HttpServlet {
                     resultSet = sqlQuery.executeQuery(sqlSelect);
                 } else {
 
-                    sqlSelect = "SELECT * FROM post WHERE forum=\'" +forum+ "\' AND date_of_creating > \'" + since +"\'" ;
-                    sqlSelect = sqlSelect + " ORDER BY date_of_creating " +order;
+                    sqlSelect = "SELECT * FROM post WHERE forum=\'" +forum+ "\'" ;
+                    if (since != null) {
+                        sqlSelect = sqlSelect + "AND date_of_creating > '" + since + "\' ";
+                    }
+
+                    sqlSelect = sqlSelect + " ORDER BY " + " date_of_creating " +order;
 
                     if (limit != null){
                         sqlSelect = sqlSelect + " LIMIT " +limit +";";
@@ -75,13 +92,26 @@ public class ListPostsServlet extends HttpServlet {
             }
             createResponse(response, status, message, resultSet);
 
-            sqlQuery.close();
-            sqlQuery = null;
-
             resultSet.close();
             resultSet = null;
+
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            if (sqlQuery != null) {
+                try {
+                    sqlQuery.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 

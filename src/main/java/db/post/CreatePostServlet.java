@@ -1,11 +1,13 @@
 package db.post;
 
+import main.DBConnectionPool;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.*;
@@ -17,14 +19,20 @@ import java.util.Map;
  */
 public class CreatePostServlet  extends HttpServlet {
 
-    private Connection connection;
+    private DataSource dataSource;
+    DBConnectionPool connectionPool;
 
-    public CreatePostServlet(Connection connection){
-        this.connection = connection;
+    Connection conn = null;
+    PreparedStatement stmt = null;
+
+    public CreatePostServlet(DataSource dataSource, DBConnectionPool connectionPool){
+        this.dataSource = dataSource;
+        this.connectionPool = connectionPool;
     }
 
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
+
 
         StringBuffer jb = new StringBuffer();
         String line = null;
@@ -78,7 +86,10 @@ public class CreatePostServlet  extends HttpServlet {
         String messagePost = (String)jsonRequest.get("message");
         long thread =  jsonRequest.getLong("thread");
         String date = (String)jsonRequest.get("date");
-
+        JSONObject data = null;
+        try {
+            conn = dataSource.getConnection();
+            connectionPool.printStatus();
         String matPath = "";
         if (parentId != 0) {
             String parent = null;
@@ -101,16 +112,15 @@ public class CreatePostServlet  extends HttpServlet {
             }
         }
 
-        JSONObject data = null;
 
-        if (status == 0) {
-            PreparedStatement pstmt;
-            try {
-                if (checkForum(forum)) {
-                     if (checkUser(user)) {
-                         pstmt = connection.prepareStatement(
-                                 "INSERT INTO post (isDeleted, isEdited, isApproved, isSpam, isHighlighted, user_email, forum, thread, parent, message, date_of_creating) " +
-                                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+            if (status == 0) {
+                PreparedStatement pstmt;
+                try {
+                    if (checkForum(forum)) {
+                        if (checkUser(user)) {
+                            pstmt = conn.prepareStatement(
+                                    "INSERT INTO post (isDeleted, isEdited, isApproved, isSpam, isHighlighted, user_email, forum, thread, parent, message, date_of_creating) " +
+                                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
 
                             pstmt.setBoolean(1, isDeleted);
                             pstmt.setBoolean(2, isEdited);
@@ -128,10 +138,11 @@ public class CreatePostServlet  extends HttpServlet {
                             pstmt.close();
 
                             /////////////////
-                            int id = -1;
+                            int id = 1;
+/*                            int id = -1;
 
                             try {
-                                pstmt = connection.prepareStatement("SELECT * FROM post WHERE forum=? AND user_email=? AND date_of_creating=?");
+                                pstmt = connection.prepareStatement("SELECT *  FROM post WHERE forum=? AND user_email=? AND date_of_creating=?");
                                 pstmt.setString(1, forum);
                                 pstmt.setString(2, user);
                                 pstmt.setString(3, date);
@@ -149,7 +160,7 @@ public class CreatePostServlet  extends HttpServlet {
                             } catch (SQLException e) {
                                 e.printStackTrace();
                             }
-
+*/
                             if (id != -1) {
                                 data = new JSONObject();
                                 data.put("date", date);
@@ -173,29 +184,49 @@ public class CreatePostServlet  extends HttpServlet {
                                 data.put("user", user);
                             } else {
                                 status = 1;
-                                message = "Some error in postCerateServlet";
+                                message = "Some error in CreatePostServlet";
                             }
 
-                         pstmt.close();
-                         pstmt = null;
+                            pstmt.close();
+                            pstmt = null;
 
                         }else {
                             status = 1;
                             message = "There is now this user";
                         }
-                }else{
-                    status = 1;
-                    message = "There is now such forum";
+                    }else{
+                        status = 1;
+                        message = "There is now such forum";
+                    }
+                } catch (SQLException e1) {
+                    e1.printStackTrace();
                 }
-            } catch (SQLException e1) {
-                e1.printStackTrace();
             }
-        }
-        try {
-            createResponse(response, status, message, data);
+            try {
+                createResponse(response, status, message, data);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
+
+
     }
 
     private void createResponse(HttpServletResponse response, short status, String message, JSONObject data) throws IOException, SQLException {
@@ -216,7 +247,7 @@ public class CreatePostServlet  extends HttpServlet {
     public String getParentPathByParentId(long parentId) throws SQLException {
 
         ResultSet resultSet;
-        PreparedStatement pstmt = connection.prepareStatement(
+        PreparedStatement pstmt = conn.prepareStatement(
                 "select parent from post where id = ? ;");
 
         pstmt.setLong(1, parentId);
@@ -243,7 +274,7 @@ public class CreatePostServlet  extends HttpServlet {
     public boolean checkUser(String email) throws SQLException {
 
         boolean response = false;
-        PreparedStatement pstmt = connection.prepareStatement("SELECT * FROM users WHERE email=?");
+        PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM users WHERE email=?");
         pstmt.setString(1, email);
 
         ResultSet rs = null;
@@ -261,7 +292,7 @@ public class CreatePostServlet  extends HttpServlet {
 
         boolean response = false;
 
-        PreparedStatement pstmt = connection.prepareStatement("select * from forum where short_name = ?");
+        PreparedStatement pstmt = conn.prepareStatement("select * from forum where short_name = ?");
         pstmt.setString(1, short_name);
         ResultSet rs = pstmt.executeQuery();
 

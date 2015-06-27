@@ -1,11 +1,13 @@
 package db.forum;
 
+import main.DBConnectionPool;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.*;
@@ -17,8 +19,14 @@ import java.util.Map;
  */
 public class CreateForumServlet  extends HttpServlet {
 
-    private Connection connection;
-    public CreateForumServlet(Connection connection){ this.connection = connection; }
+    private DataSource dataSource;
+    DBConnectionPool connectionPool;
+    Connection conn = null;
+
+    public CreateForumServlet(DataSource dataSource, DBConnectionPool connectionPool){
+        this.dataSource = dataSource;
+        this.connectionPool = connectionPool;
+    }
 
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
@@ -44,9 +52,12 @@ public class CreateForumServlet  extends HttpServlet {
             status = 3;
             message = "Wrong Request";
         }
-
+        PreparedStatement pstmt = null;
         try {
-            PreparedStatement pstmt = connection.prepareStatement(
+            conn = dataSource.getConnection();
+            connectionPool.printStatus();
+
+            pstmt = conn.prepareStatement(
                     "INSERT INTO forum (user_email, name, short_name) VALUES (?, ?, ?);");
 
             pstmt.setString(1, jsonRequest.getString("user"));
@@ -55,7 +66,7 @@ public class CreateForumServlet  extends HttpServlet {
 
             pstmt.executeUpdate();
 
-            pstmt = connection.prepareStatement("SELECT * FROM forum WHERE short_name=?");
+            pstmt = conn.prepareStatement("SELECT * FROM forum WHERE short_name=?");
             pstmt.setString(1, jsonRequest.getString("short_name"));
 
             ResultSet rs = null;
@@ -75,11 +86,6 @@ public class CreateForumServlet  extends HttpServlet {
                 message = "There is NO FORUM for this request";
             }
 
-            pstmt.close();
-            pstmt=null;
-            rs.close();
-            rs = null;
-
             jsonResponse.put("response", status == 0? responseMap : message);
             jsonResponse.put("code", status);
 
@@ -94,6 +100,21 @@ public class CreateForumServlet  extends HttpServlet {
             }
             System.out.println("---");
             ex = ex.getNextException();*/
+        } finally {
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
 
         response.getWriter().println(jsonResponse);

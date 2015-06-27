@@ -1,11 +1,13 @@
 package db.user;
 
+import main.DBConnectionPool;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.*;
 import java.util.*;
@@ -15,8 +17,14 @@ import java.util.*;
  */
 
 public class UserListPostsServlet extends HttpServlet {
-    private Connection connection;
-    public UserListPostsServlet(Connection connection){ this.connection = connection; }
+    private DataSource dataSource;
+    DBConnectionPool connectionPool;
+    Connection conn = null;
+
+    public UserListPostsServlet(DataSource dataSource, DBConnectionPool connectionPool){
+        this.dataSource = dataSource;
+        this.connectionPool = connectionPool;
+    }
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
@@ -38,11 +46,20 @@ public class UserListPostsServlet extends HttpServlet {
         String since = request.getParameter("since");
 
         // Database
+        Statement sqlQuery = null;
         try {
-            Statement sqlQuery = connection.createStatement();
+            conn = dataSource.getConnection();
+            connectionPool.printStatus();
+
+            sqlQuery = conn.createStatement();
             ResultSet rs = null;
 
-            String sqlSelect = "SELECT * FROM post WHERE user_email=\'" +userEmail+ "\' AND date_of_creating > \'" + since +"\'" ;
+            String sqlSelect = "SELECT * FROM post WHERE user_email=\'" +userEmail+ "\' " ;
+
+            if (since != null) {
+                sqlSelect = sqlSelect + "AND date_of_creating > '" + since + "\' ";
+            }
+
             sqlSelect = sqlSelect + " ORDER BY " + " date_of_creating " +order;
 
             if (limit != null){
@@ -87,8 +104,6 @@ public class UserListPostsServlet extends HttpServlet {
 
             jsonResponse.put("code", 0);
             jsonResponse.put("response", listOfResponseMap);
-            sqlQuery.close();
-            rs.close(); rs=null;
         }
         catch (SQLException ex){
             System.out.println("SQLException caught");
@@ -103,6 +118,21 @@ public class UserListPostsServlet extends HttpServlet {
         }
         catch (Exception ex){
             System.out.println("Other Error in UserListPostsServlet.");
+        }finally {
+            if (sqlQuery != null) {
+                try {
+                    sqlQuery.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         //Database!!!!
         response.getWriter().println(jsonResponse);

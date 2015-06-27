@@ -1,11 +1,13 @@
 package db.user;
 
+import main.DBConnectionPool;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.*;
 
@@ -16,8 +18,15 @@ import java.util.*;
  * Created by Виталий on 23.03.2015.
  */
 public class UserListFollowingServlet extends HttpServlet {
-    private Connection connection;
-    public UserListFollowingServlet(Connection connection){ this.connection = connection; }
+
+    private DataSource dataSource;
+    DBConnectionPool connectionPool;
+    Connection conn = null;
+
+    public UserListFollowingServlet(DataSource dataSource, DBConnectionPool connectionPool){
+        this.dataSource = dataSource;
+        this.connectionPool = connectionPool;
+    }
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
@@ -40,9 +49,14 @@ public class UserListFollowingServlet extends HttpServlet {
         String since_id = request.getParameter("since_id");
         String max_id = request.getParameter("max_id");
 
+        PreparedStatement pstmt = null;
+        Statement sqlQuery = null;
         // Database
         try {
-            PreparedStatement pstmt = connection.prepareStatement("SELECT * FROM users WHERE email=?");
+            conn = dataSource.getConnection();
+            connectionPool.printStatus();
+
+            pstmt = conn.prepareStatement("SELECT * FROM users WHERE email=?");
             pstmt.setString(1, userEmail);
 
             ResultSet rs = null;
@@ -94,7 +108,7 @@ public class UserListFollowingServlet extends HttpServlet {
                 sqlSelect = sqlSelect + ";";
             }
 
-            Statement sqlQuery = connection.createStatement();
+            sqlQuery = conn.createStatement();
             rs = sqlQuery.executeQuery(sqlSelect);
 
             int size= 0;
@@ -117,15 +131,11 @@ public class UserListFollowingServlet extends HttpServlet {
             List<Map<String, Object>> arrayResponse = new ArrayList<Map<String, Object>>();
 
             for (int j = 0; j < size; j++){
-                arrayResponse.add(db.user.UserInfo.getFullUserInfoById(connection, followers[j]));
+                arrayResponse.add(db.user.UserInfo.getFullUserInfoById(conn, followers[j]));
             }
 
             jsonResponse.put("code", 0);
             jsonResponse.put("response", arrayResponse);
-
-            pstmt.close();
-            sqlQuery.close();
-            rs.close(); rs=null;
         }
         catch (SQLException ex){
             System.out.println("SQLException caught");
@@ -137,10 +147,31 @@ public class UserListFollowingServlet extends HttpServlet {
                 System.out.println("---");
                 ex = ex.getNextException();
             }
-        }
 
-        catch (Exception ex){
+        }catch (Exception ex){
             System.out.println("Other Error in UserListFollowingServlet.");
+        }finally {
+            if (sqlQuery != null) {
+                try {
+                    sqlQuery.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         //Database!!!!
         response.getWriter().println(jsonResponse);

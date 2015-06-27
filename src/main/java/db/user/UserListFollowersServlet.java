@@ -1,11 +1,13 @@
 package db.user;
 
+import main.DBConnectionPool;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
@@ -17,8 +19,15 @@ import java.util.Map;
  * Created by Виталий on 23.03.2015.
  */
 public class UserListFollowersServlet extends HttpServlet {
-    private Connection connection;
-    public UserListFollowersServlet(Connection connection){ this.connection = connection; }
+
+    private DataSource dataSource;
+    DBConnectionPool connectionPool;
+    Connection conn = null;
+
+    public UserListFollowersServlet(DataSource dataSource, DBConnectionPool connectionPool){
+        this.dataSource = dataSource;
+        this.connectionPool = connectionPool;
+    }
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
@@ -44,10 +53,14 @@ public class UserListFollowersServlet extends HttpServlet {
         String max_id = request.getParameter("max_id");
 
         // Database
+        PreparedStatement pstmt = null;
+        Statement sqlQuery = null;
         try {
-            PreparedStatement pstmt = connection.prepareStatement("SELECT * FROM users WHERE email=?");
-            pstmt.setString(1, userEmail);
+            conn = dataSource.getConnection();
+            connectionPool.printStatus();
 
+            pstmt = conn.prepareStatement("SELECT * FROM users WHERE email=?");
+            pstmt.setString(1, userEmail);
 
             ResultSet rs = null;
             rs = pstmt.executeQuery();
@@ -100,7 +113,7 @@ public class UserListFollowersServlet extends HttpServlet {
                 sqlSelect = sqlSelect + ";";
             }
 
-            Statement sqlQuery = connection.createStatement();
+            sqlQuery = conn.createStatement();
             rs = sqlQuery.executeQuery(sqlSelect);
 
             int size= 0;
@@ -123,18 +136,12 @@ public class UserListFollowersServlet extends HttpServlet {
             List<Map<String, Object>> arrayResponse = new ArrayList<Map<String, Object>>();
 
             for (int j = 0; j < size; j++){
-                arrayResponse.add(db.user.UserInfo.getFullUserInfoById(connection, followers[j]));
+                arrayResponse.add(db.user.UserInfo.getFullUserInfoById(conn, followers[j]));
             }
 
             jsonResponse.put("code", 0);
             jsonResponse.put("response", arrayResponse);
-
-            sqlQuery.close();
-            pstmt.close();
-            rs.close(); rs=null;
         }
-
-
         catch (SQLException ex){
             System.out.println("SQLException caught");
             System.out.println("---");
@@ -148,6 +155,28 @@ public class UserListFollowersServlet extends HttpServlet {
         }
         catch (Exception ex){
             System.out.println("Other Error in Status.");
+        } finally {
+            if (sqlQuery != null) {
+                try {
+                    sqlQuery.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         //Database!!!!
         response.getWriter().println(jsonResponse);

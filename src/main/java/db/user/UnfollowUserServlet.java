@@ -1,11 +1,13 @@
 package db.user;
 
+import main.DBConnectionPool;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.Connection;
@@ -20,8 +22,15 @@ import java.util.Map;
  */
 
 public class UnfollowUserServlet extends HttpServlet {
-    private Connection connection;
-    public UnfollowUserServlet(Connection connection){ this.connection = connection; }
+
+    private DataSource dataSource;
+    DBConnectionPool connectionPool;
+    Connection conn = null;
+
+    public UnfollowUserServlet(DataSource dataSource, DBConnectionPool connectionPool){
+        this.dataSource = dataSource;
+        this.connectionPool = connectionPool;
+    }
 
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
@@ -38,9 +47,13 @@ public class UnfollowUserServlet extends HttpServlet {
         JSONObject jsonResponse = new JSONObject();
         Map<String, Object> responseMap =  new HashMap<>();
 
+        Statement sqlQuery = null;
         // Database
         try {
-            Statement sqlQuery = connection.createStatement();
+            conn = dataSource.getConnection();
+            connectionPool.printStatus();
+
+            sqlQuery = conn.createStatement();
             ResultSet rs = null;
             String sqlSelect;
             int follower = 0, followee = 0;
@@ -63,9 +76,7 @@ public class UnfollowUserServlet extends HttpServlet {
             sqlQuery.executeUpdate(sqlSelect);
 
 
-            jsonResponse = db.user.UserInfo.getFullUserInfo(connection, jsonObject.get("follower").toString());
-            sqlQuery.close();
-            rs.close(); rs=null;
+            jsonResponse = db.user.UserInfo.getFullUserInfo(conn, jsonObject.get("follower").toString());
         }
         catch (SQLException ex){
             System.out.println("SQLException caught");
@@ -78,9 +89,23 @@ public class UnfollowUserServlet extends HttpServlet {
                 ex = ex.getNextException();
             }
         }
-
         catch (Exception ex){
             System.out.println("Other Error in DetailsUserServlet.");
+        } finally {
+            if (sqlQuery != null) {
+                try {
+                    sqlQuery.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         //Database!!!!
         response.getWriter().println(jsonResponse);

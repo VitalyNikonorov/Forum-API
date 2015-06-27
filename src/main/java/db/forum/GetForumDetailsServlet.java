@@ -1,12 +1,14 @@
 package db.forum;
 
 import db.user.UserInfo;
+import main.DBConnectionPool;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.*;
 
@@ -14,10 +16,14 @@ import java.sql.*;
  * Created by vitaly on 14.06.15.
  */
 public class GetForumDetailsServlet extends HttpServlet {
-    private Connection connection;
 
-    public GetForumDetailsServlet(Connection connection){
-        this.connection = connection;
+    private DataSource dataSource;
+    DBConnectionPool connectionPool;
+    Connection conn = null;
+
+    public GetForumDetailsServlet(DataSource dataSource, DBConnectionPool connectionPool){
+        this.dataSource = dataSource;
+        this.connectionPool = connectionPool;
     }
 
     public void doGet(HttpServletRequest request,
@@ -65,16 +71,19 @@ public class GetForumDetailsServlet extends HttpServlet {
     public JSONObject getForumDetails(String short_name, String related){
 
         JSONObject data = new JSONObject();
+        PreparedStatement pstmt = null;
         try {
-            ResultSet resultSet;
+            conn = dataSource.getConnection();
+            connectionPool.printStatus();
+            ResultSet resultSet = null;
 
-            PreparedStatement pstmt = connection.prepareStatement("select * from forum where short_name = ?");
+            pstmt = conn.prepareStatement("select * from forum where short_name = ?");
             pstmt.setString(1, short_name);
             resultSet = pstmt.executeQuery();
 
             if (resultSet.next()) {
                 if (related != null) {
-                    data.put("user", UserInfo.getFullUserInfo(connection, resultSet.getString("user_email")).get("response"));
+                    data.put("user", UserInfo.getFullUserInfo(conn, resultSet.getString("user_email")).get("response"));
                 } else {
                     data.put("user", resultSet.getString("user_email"));
                 }
@@ -84,9 +93,6 @@ public class GetForumDetailsServlet extends HttpServlet {
             } else {
                 data = null;
             }
-            pstmt.close();
-            pstmt = null;
-
             resultSet.close();
             resultSet = null;
 
@@ -102,6 +108,21 @@ public class GetForumDetailsServlet extends HttpServlet {
             }
             System.out.println("---");
             ex = ex.getNextException();*/
+        } finally {
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         return data;
     }

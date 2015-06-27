@@ -1,12 +1,14 @@
 package db.post;
 
 import db.user.UserInfo;
+import main.DBConnectionPool;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.*;
@@ -17,9 +19,14 @@ import java.sql.*;
 
 public class UpdatePostServlet extends HttpServlet {
 
+    private DataSource dataSource;
+    DBConnectionPool connectionPool;
+    Connection conn = null;
 
-    private Connection connection;
-    public UpdatePostServlet(Connection connection){ this.connection = connection; }
+    public UpdatePostServlet(DataSource dataSource, DBConnectionPool connectionPool){
+        this.dataSource = dataSource;
+        this.connectionPool = connectionPool;
+    }
 
     public void doPost(HttpServletRequest request,
                            HttpServletResponse response) throws ServletException, IOException {
@@ -46,15 +53,15 @@ public class UpdatePostServlet extends HttpServlet {
             }
 
             int result = 0;
+        Statement sqlQuery = null;
         try {
+            conn = dataSource.getConnection();
+            connectionPool.printStatus();
             if (status == 0) {
 
-                Statement sqlQuery = connection.createStatement();
+                sqlQuery = conn.createStatement();
                 String query = "update post set message = \'" +messagePost+ "\' where id = " + postId + ";";
                 result = sqlQuery.executeUpdate(query);
-
-                sqlQuery.close();
-                sqlQuery = null;
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -67,6 +74,21 @@ public class UpdatePostServlet extends HttpServlet {
                 createResponse(response, status, message, postId);
             } catch (SQLException e) {
                 e.printStackTrace();
+            } finally {
+                if (sqlQuery != null) {
+                    try {
+                        sqlQuery.close();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (conn != null) {
+                    try {
+                        conn.close();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }
 
@@ -98,9 +120,10 @@ public class UpdatePostServlet extends HttpServlet {
 
         JSONObject data = new JSONObject();
         ResultSet resultSet;
+        PreparedStatement pstmt = null;
         try {
 
-            PreparedStatement pstmt = connection.prepareStatement("select * from post where id = ?");
+            pstmt = conn.prepareStatement("select * from post where id = ?");
             pstmt.setInt(1, id);
             resultSet = pstmt.executeQuery();
 
@@ -131,12 +154,6 @@ public class UpdatePostServlet extends HttpServlet {
                 data = null;
             }
 
-            pstmt.close();
-            pstmt = null;
-
-            resultSet.close();
-            resultSet = null;
-
         }catch(SQLException ex) {
             System.out.println("SQLException caught");
             System.out.println("---");
@@ -148,6 +165,14 @@ public class UpdatePostServlet extends HttpServlet {
             }
             System.out.println("---");*/
             ex = ex.getNextException();
+        } finally {
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         return data;
     }

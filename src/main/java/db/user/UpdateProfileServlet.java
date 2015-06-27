@@ -1,11 +1,13 @@
 package db.user;
 
+import main.DBConnectionPool;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.Connection;
@@ -19,8 +21,15 @@ import java.util.Map;
  * Created by Виталий on 23.03.2015.
  */
 public class UpdateProfileServlet extends HttpServlet {
-    private Connection connection;
-    public UpdateProfileServlet(Connection connection){ this.connection = connection; }
+
+    private DataSource dataSource;
+    DBConnectionPool connectionPool;
+    Connection conn = null;
+
+    public UpdateProfileServlet(DataSource dataSource, DBConnectionPool connectionPool){
+        this.dataSource = dataSource;
+        this.connectionPool = connectionPool;
+    }
 
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
@@ -37,15 +46,18 @@ public class UpdateProfileServlet extends HttpServlet {
         JSONObject jsonResponse = new JSONObject();
 
         // Database
+        Statement sqlQuery = null;
         try {
-            Statement sqlQuery = connection.createStatement();
+            conn = dataSource.getConnection();
+            connectionPool.printStatus();
+
+            sqlQuery = conn.createStatement();
             String sqlUpdate;
 
             sqlUpdate = "UPDATE users SET name=\'" + jsonObject.get("name") + "\', about=\'" + jsonObject.get("about") + "\' WHERE email=\'" + jsonObject.get("user") + "\';";
             sqlQuery.executeUpdate(sqlUpdate);
-            jsonResponse = db.user.UserInfo.getFullUserInfo(connection, jsonObject.get("user").toString());
+            jsonResponse = db.user.UserInfo.getFullUserInfo(conn, jsonObject.get("user").toString());
 
-            sqlQuery.close();
         } catch (SQLException ex) {
             System.out.println("SQLException caught");
             System.out.println("---");
@@ -58,6 +70,21 @@ public class UpdateProfileServlet extends HttpServlet {
             }
         } catch (Exception ex) {
             System.out.println("Other Error in UpdateProfileUserServlet.");
+        } finally {
+            if (sqlQuery != null) {
+                try {
+                    sqlQuery.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         //Database!!!!
         response.getWriter().println(jsonResponse);

@@ -47,7 +47,11 @@ public class ListThreadsServlet extends HttpServlet {
                 query = "select id from thread where user_email =\'"+email+"\' ";
             }
 
-            query = query + " AND date_of_creating > \'" + since +"\' ORDER BY date_of_creating " +order;
+            if (since != null) {
+                query = query + "AND date_of_creating > '" + since + "\' ";
+            }
+
+            query = query + " ORDER BY " + " date_of_creating " +order;
 
             if (limit != null){
                 query = query + " LIMIT " +limit +";";

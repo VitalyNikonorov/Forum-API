@@ -1,12 +1,14 @@
 package db.forum;
 
 import db.user.UserInfo;
+import main.DBConnectionPool;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList ;
@@ -14,8 +16,14 @@ import java.util.Map;
 
 public class ForumListPostsServlet extends HttpServlet {
 
-    private Connection connection;
-    public ForumListPostsServlet(Connection connection){ this.connection = connection; }
+    private DataSource dataSource;
+    DBConnectionPool connectionPool;
+    Connection conn = null;
+
+    public ForumListPostsServlet(DataSource dataSource, DBConnectionPool connectionPool){
+        this.dataSource = dataSource;
+        this.connectionPool = connectionPool;
+    }
 
     public void doGet(HttpServletRequest request,
                       HttpServletResponse response) throws ServletException, IOException {
@@ -37,9 +45,17 @@ public class ForumListPostsServlet extends HttpServlet {
         ResultSet resultSet = null;
         Statement sqlQuery = null;
         try {
-            sqlQuery = connection.createStatement();
+            conn = dataSource.getConnection();
+            connectionPool.printStatus();
 
-            String sqlSelect = "SELECT * FROM post WHERE forum=\'" +forum+ "\' AND date_of_creating > \'" + since +"\'" ;
+            sqlQuery = conn.createStatement();
+
+            String sqlSelect = "SELECT * FROM post WHERE forum = \'" +forum+ "\' " ;
+
+            if (since != null) {
+                sqlSelect = sqlSelect + "AND date_of_creating > '" + since + "\' ";
+            }
+
             sqlSelect = sqlSelect + " ORDER BY " + " date_of_creating " +order;
 
             if (limit != null){
@@ -56,14 +72,23 @@ public class ForumListPostsServlet extends HttpServlet {
         }
         try {
             createResponse(response, status, message, resultSet, related);
-
-            if(sqlQuery!=null){
-                sqlQuery.close();
-            }
-            resultSet.close();
-            resultSet = null;
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            if (sqlQuery != null) {
+                try {
+                    sqlQuery.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if ((conn != null) && (!conn.equals("null"))) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -125,9 +150,9 @@ public class ForumListPostsServlet extends HttpServlet {
 
         JSONObject data = new JSONObject();
         ResultSet resultSet;
+        PreparedStatement pstmt = null;
         try {
-
-            PreparedStatement pstmt = connection.prepareStatement("select * from post where id = ?");
+            pstmt = conn.prepareStatement("select * from post where id = ?");
             pstmt.setInt(1, id);
             resultSet = pstmt.executeQuery();
 
@@ -165,7 +190,7 @@ public class ForumListPostsServlet extends HttpServlet {
                 }
 
                 if (user) {
-                    data.put("user", UserInfo.getFullUserInfo(connection, resultSet.getString("user_email")).get("response"));
+                    data.put("user", UserInfo.getFullUserInfo(conn, resultSet.getString("user_email")).get("response"));
                 } else {
                     data.put("user", resultSet.getString("user_email"));
                 }
@@ -188,6 +213,14 @@ public class ForumListPostsServlet extends HttpServlet {
             }
             System.out.println("---");
             ex = ex.getNextException();
+        } finally {
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
 
         return data;
@@ -197,10 +230,10 @@ public class ForumListPostsServlet extends HttpServlet {
     public JSONObject getForumDetails(String short_name){
 
         JSONObject data = new JSONObject();
+        PreparedStatement pstmt = null;
         try {
             ResultSet resultSet;
-
-            PreparedStatement pstmt = connection.prepareStatement("select * from forum where short_name = ?");
+            pstmt = conn.prepareStatement("select * from forum where short_name = ?");
             pstmt.setString(1, short_name);
             resultSet = pstmt.executeQuery();
 
@@ -227,6 +260,14 @@ public class ForumListPostsServlet extends HttpServlet {
             }
             System.out.println("---");
             ex = ex.getNextException(); //TODO
+        } finally {
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         return data;
     }
@@ -237,12 +278,12 @@ public class ForumListPostsServlet extends HttpServlet {
         ResultSet resultSet;
         ResultSet resultSetCount;
 
-        PreparedStatement pstmt = connection.prepareStatement("select * from thread where id = ?");
+        PreparedStatement pstmt = conn.prepareStatement("select * from thread where id = ?");
         pstmt.setInt(1, id);
 
         resultSet = pstmt.executeQuery();
 
-        PreparedStatement pstmtCountPosts = connection.prepareStatement("select count(*) as amount from post where thread = " + id + " and isDeleted = 0;");
+        PreparedStatement pstmtCountPosts = conn.prepareStatement("select count(thread) as amount from post where thread = " + id + " and isDeleted = 0;");
 
         resultSetCount = pstmtCountPosts.executeQuery();
 

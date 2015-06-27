@@ -14,6 +14,7 @@ import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import javax.servlet.Servlet;
+import javax.sql.DataSource;
 import java.sql.*;
 
 /**
@@ -27,7 +28,14 @@ public class Main {
         DBConnect mysql = new DBConnect();
         Connection connection = mysql.getConnection();
 
-        // DATABASE
+        // DATABASE POOL
+        DBConnectionPool connectionPool = new DBConnectionPool();
+        DataSource dataSource = connectionPool.setUp();
+        connectionPool.printStatus();
+
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
         //Database!!!!
 
         Servlet clear = new ClearServlet(connection);
@@ -42,14 +50,14 @@ public class Main {
 
         //USER
             //SERVLETS
-        Servlet createUser = new CreateUserServlet(connection);
-        Servlet getUserDetails = new GetUserDetailsServlet(connection);
-        Servlet followUser = new FollowUserServlet(connection);
-        Servlet listFollowers = new UserListFollowersServlet(connection);
-        Servlet listFollowing = new UserListFollowingServlet(connection);
-        Servlet userListPosts = new UserListPostsServlet(connection);
-        Servlet unfollowUser = new UnfollowUserServlet(connection);
-        Servlet updateProfile = new UpdateProfileServlet(connection);
+        Servlet createUser = new CreateUserServlet(dataSource, connectionPool);
+        Servlet getUserDetails = new GetUserDetailsServlet(dataSource, connectionPool);
+        Servlet followUser = new FollowUserServlet(dataSource, connectionPool);
+        Servlet listFollowers = new UserListFollowersServlet(dataSource, connectionPool);
+        Servlet listFollowing = new UserListFollowingServlet(dataSource, connectionPool);
+        Servlet userListPosts = new UserListPostsServlet(dataSource, connectionPool);
+        Servlet unfollowUser = new UnfollowUserServlet(dataSource, connectionPool);
+        Servlet updateProfile = new UpdateProfileServlet(dataSource, connectionPool);
             //CONTEXT
         context.addServlet(new ServletHolder(createUser), "/db/api/user/create/");
         context.addServlet(new ServletHolder(getUserDetails), "/db/api/user/details/");
@@ -62,11 +70,11 @@ public class Main {
 
 
         //FORUM
-        Servlet createForum = new CreateForumServlet(connection);
-        Servlet getForumDetails = new GetForumDetailsServlet(connection);
-        Servlet forumListPostServlet = new ForumListPostsServlet(connection);
-        Servlet forumListThreadsServlet = new ForumListThreadsServlet(connection);
-        Servlet forumListUsersServlet = new ForumListUsersServlet(connection);
+        Servlet createForum = new CreateForumServlet(dataSource, connectionPool);
+        Servlet getForumDetails = new GetForumDetailsServlet(dataSource, connectionPool);
+        Servlet forumListPostServlet = new ForumListPostsServlet(dataSource, connectionPool);
+        Servlet forumListThreadsServlet = new ForumListThreadsServlet(dataSource, connectionPool);
+        Servlet forumListUsersServlet = new ForumListUsersServlet(dataSource, connectionPool);
 
         //CONTEXT
         context.addServlet(new ServletHolder(createForum), "/db/api/forum/create/");
@@ -104,13 +112,13 @@ public class Main {
         context.addServlet(new ServletHolder(listPostsThread), "/db/api/thread/listPosts/");
 
         //POST
-        Servlet createPost = new CreatePostServlet(connection);
-        Servlet getPostDetails = new GetPostDetailsServlet(connection);
-        Servlet listPosts = new ListPostsServlet(connection);
-        Servlet removePost = new RemovePostServlet(connection);
-        Servlet restorePost = new RestorePostServlet(connection);
-        Servlet updatePost = new UpdatePostServlet(connection);
-        Servlet votePost = new VotePostServlet(connection);
+        Servlet createPost = new CreatePostServlet(dataSource, connectionPool);
+        Servlet getPostDetails = new GetPostDetailsServlet(dataSource, connectionPool);
+        Servlet listPosts = new ListPostsServlet(dataSource, connectionPool);
+        Servlet removePost = new RemovePostServlet(dataSource, connectionPool);
+        Servlet restorePost = new RestorePostServlet(dataSource, connectionPool);
+        Servlet updatePost = new UpdatePostServlet(dataSource, connectionPool);
+        Servlet votePost = new VotePostServlet(dataSource, connectionPool);
 
         //CONTEXT
         context.addServlet(new ServletHolder(createPost), "/db/api/post/create/");
@@ -134,4 +142,5 @@ public class Main {
         server.start();
         server.join();
     }
+
 }

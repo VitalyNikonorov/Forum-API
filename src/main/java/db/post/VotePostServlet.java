@@ -1,11 +1,13 @@
 package db.post;
 
+import main.DBConnectionPool;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.*;
@@ -15,8 +17,14 @@ import java.sql.*;
  */
 public class VotePostServlet extends HttpServlet {
 
-    private Connection connection;
-    public VotePostServlet(Connection connection){ this.connection = connection; }
+    private DataSource dataSource;
+    DBConnectionPool connectionPool;
+    Connection conn = null;
+
+    public VotePostServlet(DataSource dataSource, DBConnectionPool connectionPool){
+        this.dataSource = dataSource;
+        this.connectionPool = connectionPool;
+    }
 
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
@@ -42,19 +50,20 @@ public class VotePostServlet extends HttpServlet {
             status = 3;
             message = "Wrong JSON";
         }
+        Statement sqlQuery = null;
         try {
-        if (status == 0) {
-            String likes = vote > 0 ? "likes" : "dislikes";
-            String query = "update post set " + likes + " = " + likes + " + 1" + " where id = " + postId + ";";
-            Statement sqlQuery = connection.createStatement();
-            int result = sqlQuery.executeUpdate(query);
-            if (result == 0) {
-                status = 1;
-                message = "There is no such POST";
+            conn = dataSource.getConnection();
+            connectionPool.printStatus();
+            if (status == 0) {
+                String likes = vote > 0 ? "likes" : "dislikes";
+                String query = "update post set " + likes + " = " + likes + " + 1" + " where id = " + postId + ";";
+                sqlQuery = conn.createStatement();
+                int result = sqlQuery.executeUpdate(query);
+                if (result == 0) {
+                    status = 1;
+                    message = "There is no such POST";
+                }
             }
-            sqlQuery.close();
-            sqlQuery = null;
-        }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -63,6 +72,21 @@ public class VotePostServlet extends HttpServlet {
             createResponse(response, status, message, postId);
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            if (sqlQuery != null) {
+                try {
+                    sqlQuery.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -94,9 +118,10 @@ public class VotePostServlet extends HttpServlet {
 
         JSONObject data = new JSONObject();
         ResultSet resultSet;
+        PreparedStatement pstmt = null;
         try {
 
-            PreparedStatement pstmt = connection.prepareStatement("select * from post where id = ?");
+            pstmt = conn.prepareStatement("select * from post where id = ?");
             pstmt.setInt(1, id);
             resultSet = pstmt.executeQuery();
 
@@ -127,12 +152,6 @@ public class VotePostServlet extends HttpServlet {
                 data = null;
             }
 
-            pstmt.close();
-            pstmt = null;
-
-            resultSet.close();
-            resultSet = null;
-
         }catch(SQLException ex) {
             /*System.out.println("SQLException caught");
             System.out.println("---");
@@ -144,6 +163,14 @@ public class VotePostServlet extends HttpServlet {
             }
             System.out.println("---");
             ex = ex.getNextException();*/
+        } finally {
+            if (pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         return data;
     }

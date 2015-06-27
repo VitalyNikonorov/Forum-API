@@ -1,12 +1,14 @@
 package db.forum;
 
 import db.user.UserInfo;
+import main.DBConnectionPool;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
@@ -17,9 +19,14 @@ import java.util.Map;
  */
 public class ForumListThreadsServlet extends HttpServlet {
 
+    private DataSource dataSource;
+    DBConnectionPool connectionPool;
+    Connection conn = null;
 
-    private Connection connection;
-    public ForumListThreadsServlet(Connection connection){ this.connection = connection; }
+    public ForumListThreadsServlet(DataSource dataSource, DBConnectionPool connectionPool){
+        this.dataSource = dataSource;
+        this.connectionPool = connectionPool;
+    }
 
     public void doGet(HttpServletRequest request,
                       HttpServletResponse response) throws ServletException, IOException {
@@ -35,10 +42,19 @@ public class ForumListThreadsServlet extends HttpServlet {
         String message = "";
 
         ResultSet resultSet;
+        Statement sqlQuery = null;
         try {
-            Statement sqlQuery = connection.createStatement();
+            conn = dataSource.getConnection();
+            connectionPool.printStatus();
 
-            String sqlSelect = "SELECT * FROM thread WHERE forum=\'" +forum+ "\' AND date_of_creating > \'" + since +"\'" ;
+            sqlQuery = conn.createStatement();
+
+            String sqlSelect = "SELECT * FROM thread WHERE forum=\'" +forum+ "\' " ;
+
+            if (since != null) {
+                sqlSelect = sqlSelect + "AND date_of_creating > '" + since + "\' ";
+            }
+
             sqlSelect = sqlSelect + " ORDER BY " + " date_of_creating " +order;
 
 
@@ -57,6 +73,21 @@ public class ForumListThreadsServlet extends HttpServlet {
             resultSet = null;
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            if (sqlQuery != null) {
+                try {
+                    sqlQuery.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -114,12 +145,12 @@ public class ForumListThreadsServlet extends HttpServlet {
         ResultSet resultSet;
         ResultSet resultSetCount;
 
-        PreparedStatement pstmt = connection.prepareStatement("select * from thread where id = ?");
+        PreparedStatement pstmt = conn.prepareStatement("select * from thread where id = ?");
         pstmt.setInt(1, id);
 
         resultSet = pstmt.executeQuery();
 
-        PreparedStatement pstmtCountPosts = connection.prepareStatement("select count(*) as amount from post where thread = " + id + " and isDeleted = 0;");
+        PreparedStatement pstmtCountPosts = conn.prepareStatement("select count(*) as amount from post where thread = " + id + " and isDeleted = 0;");
 
         resultSetCount = pstmtCountPosts.executeQuery();
 
@@ -133,10 +164,11 @@ public class ForumListThreadsServlet extends HttpServlet {
 
 
                 JSONObject forumData = new JSONObject();
+                PreparedStatement pstmtForum = null;
                 try {
                     ResultSet resultSetForum;
 
-                    PreparedStatement pstmtForum = connection.prepareStatement("select * from forum where short_name = ?");
+                    pstmtForum = conn.prepareStatement("select * from forum where short_name = ?");
                     pstmtForum.setString(1, resultSet.getString("forum"));
                     resultSetForum = pstmtForum.executeQuery();
 
@@ -163,6 +195,14 @@ public class ForumListThreadsServlet extends HttpServlet {
                     }
                     System.out.println("---");
                     ex = ex.getNextException();*/
+                } finally {
+                    if (pstmtForum != null) {
+                        try {
+                            pstmtForum.close();
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
                 data.put("forum", forumData);
 
@@ -179,7 +219,7 @@ public class ForumListThreadsServlet extends HttpServlet {
             data.put("slug", resultSet.getString("slug"));
             data.put("title", resultSet.getString("title"));
             if (user) {
-                data.put("user", UserInfo.getFullUserInfo(connection, resultSet.getString("user_email")).get("response"));
+                data.put("user", UserInfo.getFullUserInfo(conn, resultSet.getString("user_email")).get("response"));
             } else {
                 data.put("user", resultSet.getString("user_email"));
             }

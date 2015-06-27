@@ -1,14 +1,17 @@
 package db.post;
 
+import main.DBConnectionPool;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -17,13 +20,22 @@ import java.sql.Statement;
  */
 public class RemovePostServlet extends HttpServlet {
 
-    private Connection connection;
-    public RemovePostServlet(Connection connection){ this.connection = connection; }
+    private DataSource dataSource;
+    DBConnectionPool connectionPool;
 
+    Connection conn = null;
+    //PreparedStatement stmt = null;
+
+
+    public RemovePostServlet(DataSource dataSource, DBConnectionPool connectionPool){
+        this.dataSource = dataSource;
+        this.connectionPool = connectionPool;
+    }
 
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
 
+        Statement sqlQuery = null;
         StringBuffer jb = new StringBuffer();
         String line = null;
         try {
@@ -47,15 +59,17 @@ public class RemovePostServlet extends HttpServlet {
 
         int result = 0;
         String query;
-        try {
-            Statement sqlQuery = connection.createStatement();
 
+        try {
+            conn = dataSource.getConnection();
+            connectionPool.printStatus();
+            //Statement sqlQuery = connection.createStatement();
+            sqlQuery = conn.createStatement();
             if (status == 0) {
                 query = "update post set isDeleted = 1 where id = " + postId + ";";
                 result = sqlQuery.executeUpdate(query);
             }
-            sqlQuery.close();
-            sqlQuery = null;
+
             
         } catch (SQLException e) {
             e.printStackTrace();
@@ -68,6 +82,21 @@ public class RemovePostServlet extends HttpServlet {
             createResponse(response, status, message, postId);
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            if (sqlQuery != null) {
+                try {
+                    sqlQuery.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
