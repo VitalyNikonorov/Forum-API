@@ -18,7 +18,7 @@ import java.util.Map;
 public class CreatePostServlet  extends HttpServlet {
 
     private Connection connection;
-
+    static int id = 1;
     public CreatePostServlet(Connection connection){
         this.connection = connection;
     }
@@ -128,8 +128,8 @@ public class CreatePostServlet  extends HttpServlet {
                             pstmt.close();
 
                             /////////////////
-                            int id = -1;
 
+/*
                             try {
                                 pstmt = connection.prepareStatement("SELECT * FROM post WHERE forum=? AND user_email=? AND date_of_creating=?");
                                 pstmt.setString(1, forum);
@@ -149,7 +149,7 @@ public class CreatePostServlet  extends HttpServlet {
                             } catch (SQLException e) {
                                 e.printStackTrace();
                             }
-
+*/
                             if (id != -1) {
                                 data = new JSONObject();
                                 data.put("date", date);
@@ -161,6 +161,7 @@ public class CreatePostServlet  extends HttpServlet {
                                 data.put("isSpam", isSpam);
                                 data.put("isDeleted", isDeleted);
                                 data.put("message", messagePost);
+                                id++;
 
                                 if (matPath.equals("")) {
                                     data.put("parent", JSONObject.NULL);

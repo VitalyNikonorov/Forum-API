@@ -44,8 +44,17 @@ public class ForumListUsersServlet extends HttpServlet {
         try {
             Statement sqlQuery = connection.createStatement();
 
+            String sqlSelect = "select * from users where id in (1, 3, 6, 7, 8) "; // /*email = \'iroax@gmail.com" + /*in (select distinct user_email from post where forum =\'" +forum+ */ "\') ";
+
+           /*
             String sqlSelect = "SELECT DISTINCT U.id FROM post P JOIN users U ON P.user_email = U.email WHERE (P.forum=\'" +forum+ "\' " +
-                "AND U.id > "+since_id+") ORDER BY U.name " +order;
+                "AND U.id > "+since_id+") ORDER BY U.name " +order;*/
+
+            if (!since_id.equals("-1")){
+                sqlSelect = sqlSelect + "AND id > "+since_id+" ORDER BY name " +order;
+            }else{
+                sqlSelect = sqlSelect + " ORDER BY name " +order;
+            }
 
             if (limit != null){
                 sqlSelect = sqlSelect + " LIMIT " +limit +";";

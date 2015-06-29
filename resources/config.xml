@@ -1,5 +1,5 @@
 <class type='DB'>
-    <MySQL.DB>testdb</MySQL.DB>
+    <MySQL.DB>new</MySQL.DB>
 
     <MySQL.user>root</MySQL.user>
 
