@@ -1,6 +1,7 @@
 package db.user;
 
 import main.DBConnectionPool;
+import main.Main;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -19,16 +20,6 @@ import java.util.Map;
  * Created by Виталий on 23.03.2015.
  */
 public class UserListFollowersServlet extends HttpServlet {
-
-    private DataSource dataSource;
-    DBConnectionPool connectionPool;
-    Connection conn = null;
-
-    public UserListFollowersServlet(DataSource dataSource, DBConnectionPool connectionPool){
-        this.dataSource = dataSource;
-        this.connectionPool = connectionPool;
-    }
-
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         JSONObject jsonResponse = new JSONObject();
@@ -55,9 +46,10 @@ public class UserListFollowersServlet extends HttpServlet {
         // Database
         PreparedStatement pstmt = null;
         Statement sqlQuery = null;
+        Connection conn = null;
         try {
-            conn = dataSource.getConnection();
-            connectionPool.printStatus();
+            conn = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
 
             pstmt = conn.prepareStatement("SELECT * FROM users WHERE email=?");
             pstmt.setString(1, userEmail);
@@ -143,26 +135,11 @@ public class UserListFollowersServlet extends HttpServlet {
             jsonResponse.put("response", arrayResponse);
         }
         catch (SQLException ex){
-            System.out.println("SQLException caught");
-            System.out.println("---");
-            while ( ex != null ){
-                System.out.println("Message   : " + ex.getMessage());
-                System.out.println("SQLState  : " + ex.getSQLState());
-                System.out.println("ErrorCode : " + ex.getErrorCode());
-                System.out.println("---");
-                ex = ex.getNextException();
-            }
+            ex.printStackTrace();
         }
         catch (Exception ex){
             System.out.println("Other Error in Status.");
         } finally {
-            if (sqlQuery != null) {
-                try {
-                    sqlQuery.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
             if (pstmt != null) {
                 try {
                     pstmt.close();
@@ -178,6 +155,7 @@ public class UserListFollowersServlet extends HttpServlet {
                 }
             }
         }
+        Main.connectionPool.printStatus();
         //Database!!!!
         response.getWriter().println(jsonResponse);
     }

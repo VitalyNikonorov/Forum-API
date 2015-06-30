@@ -1,5 +1,6 @@
 package db.thread;
 
+import main.Main;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -16,9 +17,6 @@ import java.sql.Statement;
  * Created by vitaly on 23.06.15.
  */
 public class CloseThreadServlet extends HttpServlet {
-
-    private Connection connection;
-    public CloseThreadServlet(Connection connection){ this.connection = connection; }
 
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
@@ -44,9 +42,12 @@ public class CloseThreadServlet extends HttpServlet {
             message = "Incorrect Request JSON";
         }
 
-
+        Connection connection = null;
+        Statement sqlQuery = null;
         try {
-            Statement sqlQuery = connection.createStatement();
+            connection = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
+            sqlQuery = connection.createStatement();
             int result = 0;
             String query;
 
@@ -58,11 +59,16 @@ public class CloseThreadServlet extends HttpServlet {
                     message = "There is no such Thread";
                 }
             }
-            sqlQuery.close();
-            sqlQuery = null;
-
             createResponse(response, status, message, threadId);
         } catch (SQLException e) {
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
 
     }

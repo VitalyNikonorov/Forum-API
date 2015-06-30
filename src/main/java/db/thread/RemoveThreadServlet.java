@@ -1,5 +1,6 @@
 package db.thread;
 
+import main.Main;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -17,9 +18,6 @@ import java.sql.Statement;
  */
 public class RemoveThreadServlet extends HttpServlet {
 
-    private Connection connection;
-    public RemoveThreadServlet(Connection connection){ this.connection = connection; }
-
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
 
@@ -30,7 +28,9 @@ public class RemoveThreadServlet extends HttpServlet {
             BufferedReader reader = request.getReader();
             while ((line = reader.readLine()) != null)
                 jb.append(line);
-        } catch (Exception e) { /*report an error*/ }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         JSONObject JSONRequest = new JSONObject(jb.toString());
 
@@ -42,8 +42,12 @@ public class RemoveThreadServlet extends HttpServlet {
             status = 3;
             message = "Incorrect JSON";
         }
+        Connection connection = null;
 
         try {
+            connection = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
+
             Statement sqlQuery = connection.createStatement();
 
             if (status == 0) {
@@ -59,11 +63,18 @@ public class RemoveThreadServlet extends HttpServlet {
                 }
             }
             createResponse(response, status, message, threadId);
-            sqlQuery.close();
-            sqlQuery = null;
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
+        Main.connectionPool.printStatus();
     }
 
     private void createResponse(HttpServletResponse response, short status, String message, long threadId) throws IOException, SQLException {

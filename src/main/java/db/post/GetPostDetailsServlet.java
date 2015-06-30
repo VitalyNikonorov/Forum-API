@@ -2,6 +2,7 @@ package db.post;
 
 import db.user.UserInfo;
 import main.DBConnectionPool;
+import main.Main;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -17,33 +18,32 @@ import java.util.Map;
  * Created by vitaly on 20.06.15.
  */
 public class GetPostDetailsServlet extends HttpServlet {
-
-    private DataSource dataSource;
-    DBConnectionPool connectionPool;
-    private Connection connection;
-
-    PreparedStatement stmt = null;
-
-    public GetPostDetailsServlet(DataSource dataSource, DBConnectionPool connectionPool) throws SQLException {
-        this.dataSource = dataSource;
-        this.connectionPool = connectionPool;
-        this.connection = dataSource.getConnection();
-    }
-
     public void doGet(HttpServletRequest request,
                       HttpServletResponse response) throws ServletException, IOException {
         Map<String, String[]> paramMap = request.getParameterMap();
         int id = Integer.parseInt(paramMap.containsKey("post") ? paramMap.get("post")[0] : "0");
         String[] related = paramMap.get("related");
+        Connection conn = null;
         try {
-            createResponse(response, id, related);
+            conn = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
+
+            createResponse(conn, response, id, related);
         } catch (SQLException e) {
             e.printStackTrace();
             e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
-    private void createResponse(HttpServletResponse response, int id, String[] related) throws IOException, SQLException {
+    private void createResponse(Connection conn, HttpServletResponse response, int id, String[] related) throws IOException, SQLException {
         response.setContentType("json;charset=UTF-8");
         response.setHeader("Cache-Control", "no-cache");
         response.setStatus(HttpServletResponse.SC_OK);
@@ -79,7 +79,7 @@ public class GetPostDetailsServlet extends HttpServlet {
             }
         }
         JSONObject data;
-        data = getPostDetails(id, user, thread, forum);
+        data = getPostDetails(conn, id, user, thread, forum);
         if (data == null) {
             status = 1;
             message = "There is no such post";
@@ -89,17 +89,12 @@ public class GetPostDetailsServlet extends HttpServlet {
         response.getWriter().write(obj.toString());
     }
 
-
-    public JSONObject getPostDetails(int id, boolean user, boolean thread, boolean forum) throws IOException, SQLException {
+    public JSONObject getPostDetails(Connection conn, int id, boolean user, boolean thread, boolean forum) throws IOException, SQLException {
 
         JSONObject data = new JSONObject();
         ResultSet resultSet = null;
-        Connection conn = null;
         try {
-            conn = dataSource.getConnection();
-            connectionPool.printStatus();
-            //PreparedStatement pstmt;
-
+            PreparedStatement stmt;
             stmt = conn.prepareStatement("select * from post where id = ?");
             stmt.setInt(1, id);
             resultSet = stmt.executeQuery();
@@ -108,7 +103,7 @@ public class GetPostDetailsServlet extends HttpServlet {
                 data.put("date", resultSet.getString("date_of_creating").substring(0, 19));
                 if (forum) {
                     //////////// TODO в функцию
-                    data.put("forum", getForumDetails(resultSet.getString("forum")));
+                    data.put("forum", getForumDetails(conn, resultSet.getString("forum")));
                 } else {
                     data.put("forum", resultSet.getString("forum"));
                 }
@@ -132,13 +127,13 @@ public class GetPostDetailsServlet extends HttpServlet {
                 }
 
                 if (thread) {
-                    data.put("thread", getThreadDetailsById(resultSet.getInt("thread")));
+                    data.put("thread", getThreadDetailsById(conn, resultSet.getInt("thread")));
                 } else {
                     data.put("thread", resultSet.getInt("thread"));
                 }
 
                 if (user) {
-                    data.put("user", UserInfo.getFullUserInfo(connection, resultSet.getString("user_email")).get("response"));
+                    data.put("user", UserInfo.getFullUserInfo(conn, resultSet.getString("user_email")).get("response"));
                 } else {
                     data.put("user", resultSet.getString("user_email"));
                 }
@@ -147,51 +142,21 @@ public class GetPostDetailsServlet extends HttpServlet {
                 data = null;
             }
 
-            //pstmt.close();
-            //pstmt = null;
-
-            //resultSet.close();
-            //resultSet = null;
-
         }catch(SQLException ex) {
-            /*System.out.println("SQLException caught");
-            System.out.println("---");
-            while (ex != null) {
-                System.out.println("Message   : " + ex.getMessage());
-                System.out.println("SQLState  : " + ex.getSQLState());
-                System.out.println("ErrorCode : " + ex.getErrorCode());
-                System.out.println(ex.getMessage());
-            }
-            System.out.println("---");*/
-            ex = ex.getNextException();
-        }finally {
-        if (stmt != null) {
-            try {
-                stmt.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            ex.printStackTrace();
         }
-        if (conn != null) {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
+        Main.connectionPool.printStatus();
         return data;
     }
 
 
-    public JSONObject getForumDetails(String short_name){
+    public JSONObject getForumDetails(Connection conn, String short_name){
 
         JSONObject data = new JSONObject();
         try {
             ResultSet resultSet;
 
-            PreparedStatement pstmt = connection.prepareStatement("select * from forum where short_name = ?");
+            PreparedStatement pstmt = conn.prepareStatement("select * from forum where short_name = ?");
             pstmt.setString(1, short_name);
             resultSet = pstmt.executeQuery();
 
@@ -203,40 +168,24 @@ public class GetPostDetailsServlet extends HttpServlet {
             } else {
                 data = null;
             }
-
-            pstmt.close();
-            pstmt = null;
-
-            resultSet.close();
-            resultSet = null;
-
         }catch(SQLException ex) {
-            System.out.println("SQLException caught");
-            System.out.println("---");
-            /*while (ex != null) {
-                System.out.println("Message   : " + ex.getMessage());
-                System.out.println("SQLState  : " + ex.getSQLState());
-                System.out.println("ErrorCode : " + ex.getErrorCode());
-                System.out.println(ex.getMessage());
-            }
-            System.out.println("---");*/
-            ex = ex.getNextException(); //TODO
+            ex.printStackTrace();
     }
         return data;
     }
 
 
-    public JSONObject getThreadDetailsById(int id) throws IOException, SQLException{
+    public JSONObject getThreadDetailsById(Connection conn, int id) throws IOException, SQLException{
 
         ResultSet resultSet;
         ResultSet resultSetCount;
 
-        PreparedStatement pstmt = connection.prepareStatement("select * from thread where id = ?");
+        PreparedStatement pstmt = conn.prepareStatement("select * from thread where id = ?");
         pstmt.setInt(1, id);
 
         resultSet = pstmt.executeQuery();
 
-        PreparedStatement pstmtCountPosts = connection.prepareStatement("select count(*) as amount from post where thread = " + id + " and isDeleted = 0;");
+        PreparedStatement pstmtCountPosts = conn.prepareStatement("select count(*) as amount from post where thread = " + id + " and isDeleted = 0;");
 
         resultSetCount = pstmtCountPosts.executeQuery();
 
@@ -261,18 +210,6 @@ public class GetPostDetailsServlet extends HttpServlet {
             String message = "There is no thread with such id!";
             data.put("error", message);
         }
-
-        pstmt.close();
-        pstmt = null;
-
-        pstmtCountPosts.close();
-        pstmtCountPosts = null;
-
-        resultSet.close();
-        resultSet = null;
-
-        resultSetCount.close();
-        resultSetCount = null;
 
         return data;
     }

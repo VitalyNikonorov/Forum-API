@@ -1,5 +1,6 @@
 package db.thread;
 
+import main.Main;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -16,9 +17,6 @@ import java.util.Map;
  * Created by vitaly on 14.06.15.
  */
 public class CreateThreadServlet extends HttpServlet {
-
-    private Connection connection;
-    public CreateThreadServlet(Connection connection){ this.connection = connection; }
 
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
@@ -50,8 +48,12 @@ public class CreateThreadServlet extends HttpServlet {
             isClosed = jsonRequest.getBoolean("isClosed");
         }
 
+        Connection connection = null;
+        PreparedStatement pstmt = null;
         try {
-            PreparedStatement pstmt = connection.prepareStatement(
+            connection = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
+            pstmt = connection.prepareStatement(
                     "INSERT INTO thread (isDeleted, isClosed, user_email, forum, message, title, slug, date_of_creating) VALUES (?, ?, ?, ?, ?, ?, ?, ?);");
 
             pstmt.setBoolean(1, isDeleted);
@@ -85,32 +87,25 @@ public class CreateThreadServlet extends HttpServlet {
                     responseMap.put("title", rs.getString("title"));
                     responseMap.put("slug", rs.getString("slug"));
                     responseMap.put("date", rs.getString("date_of_creating"));
-
                 }
             } else {
                 status = 3;
                 message = "There is NO THREAD for this request";
             }
 
-            pstmt.close();
-            pstmt = null;
-            rs.close();
-            rs = null;
-
             jsonResponse.put("response", status == 0 ? responseMap : message);
             jsonResponse.put("code", status);
 
         }catch(SQLException ex){
-            System.out.println("SQLException caught");
-            System.out.println("---");
-            while (ex != null) {
-                System.out.println("Message   : " + ex.getMessage());
-                System.out.println("SQLState  : " + ex.getSQLState());
-                System.out.println("ErrorCode : " + ex.getErrorCode());
-                System.out.println(ex.getMessage());
+            ex.printStackTrace();
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             }
-            System.out.println("---");
-            ex = ex.getNextException();
         }
         response.getWriter().println(jsonResponse);
     }

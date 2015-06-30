@@ -5,4 +5,6 @@
 
     <MySQL.pass></MySQL.pass>
 
+    <Max>8</Max>
+
 </class>

@@ -1,6 +1,7 @@
 package db.thread;
 
 import db.user.UserInfo;
+import main.Main;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -18,9 +19,6 @@ import static java.lang.String.format;
  * Created by vitaly on 23.06.15.
  */
 public class ListPostsThreadServlet extends HttpServlet {
-
-    private Connection connection;
-    public ListPostsThreadServlet(Connection connection){ this.connection = connection; }
 
     public void doGet(HttpServletRequest request,
                       HttpServletResponse response) throws ServletException, IOException {
@@ -50,8 +48,10 @@ public class ListPostsThreadServlet extends HttpServlet {
             message = "Incorrect JSON";
         }
 
-
+        Connection connection = null;
         try {
+            connection = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
 
             StringBuilder query = new StringBuilder();
             ResultSet resultSet = null;
@@ -98,31 +98,29 @@ public class ListPostsThreadServlet extends HttpServlet {
                                 .append("select id from post where thread = ")
                                 .append(parseInt(thread_str))
                                 .append(" and LEFT(parent, 3) in ").append(parents).append(";");
-
-                        statementSub.close();
-                        statementSub = null;
-
-                        resultSetSub.close();
-                        resultSetSub = null;
                 }
 
                 resultSet = sqlQuery.executeQuery(query.toString());
             }
 
-            createResponse(response, status, message, resultSet);
+            createResponse(connection, response, status, message, resultSet);
 
-            sqlQuery.close();
-            sqlQuery = null;
-
-            resultSet.close();
-            resultSet = null;
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
+        Main.connectionPool.printStatus();
 
     }
 
-    private void createResponse(HttpServletResponse response, short status, String message, ResultSet resultSet) throws IOException, SQLException {
+    private void createResponse(Connection connection, HttpServletResponse response, short status, String message, ResultSet resultSet) throws IOException, SQLException {
 
         response.setContentType("json;charset=UTF-8");
         response.setHeader("Cache-Control", "no-cache");
@@ -139,7 +137,7 @@ public class ListPostsThreadServlet extends HttpServlet {
         } else {
             int i = 0;
             while (resultSet.next()) {
-                listOfResponse.add(i, getPostDetails(resultSet.getInt("id")));
+                listOfResponse.add(i, getPostDetails(connection, resultSet.getInt("id")));
                 i++;
             }
             obj.put("response", listOfResponse);
@@ -172,12 +170,11 @@ public class ListPostsThreadServlet extends HttpServlet {
     }
 
 
-    public JSONObject getPostDetails(int id) throws IOException, SQLException {
+    public JSONObject getPostDetails(Connection connection, int id) throws IOException, SQLException {
 
         JSONObject data = new JSONObject();
         ResultSet resultSet;
         try {
-
             PreparedStatement pstmt = connection.prepareStatement("select * from post where id = ?");
             pstmt.setInt(1, id);
             resultSet = pstmt.executeQuery();
@@ -209,23 +206,8 @@ public class ListPostsThreadServlet extends HttpServlet {
             } else {
                 data = null;
             }
-
-            pstmt.close();
-            pstmt = null;
-            resultSet.close();
-            resultSet = null;
-
         }catch(SQLException ex) {
-            System.out.println("SQLException caught");
-            System.out.println("---");
-            while (ex != null) {
-                System.out.println("Message   : " + ex.getMessage());
-                System.out.println("SQLState  : " + ex.getSQLState());
-                System.out.println("ErrorCode : " + ex.getErrorCode());
-                System.out.println(ex.getMessage());
-            }
-            System.out.println("---");
-            ex = ex.getNextException();
+            ex.printStackTrace();
         }
 
         return data;

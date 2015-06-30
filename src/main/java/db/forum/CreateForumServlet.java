@@ -1,6 +1,7 @@
 package db.forum;
 
 import main.DBConnectionPool;
+import main.Main;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -19,20 +20,11 @@ import java.util.Map;
  */
 public class CreateForumServlet  extends HttpServlet {
 
-    private DataSource dataSource;
-    DBConnectionPool connectionPool;
-    Connection conn = null;
-
-    public CreateForumServlet(DataSource dataSource, DBConnectionPool connectionPool){
-        this.dataSource = dataSource;
-        this.connectionPool = connectionPool;
-    }
-
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("application/json;charset=utf-8");
         JSONObject jsonResponse = new JSONObject();
-
+        Connection conn = null;
         short status = 0;
         String message = "";
 
@@ -54,8 +46,8 @@ public class CreateForumServlet  extends HttpServlet {
         }
         PreparedStatement pstmt = null;
         try {
-            conn = dataSource.getConnection();
-            connectionPool.printStatus();
+            conn = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
 
             pstmt = conn.prepareStatement(
                     "INSERT INTO forum (user_email, name, short_name) VALUES (?, ?, ?);");
@@ -65,7 +57,6 @@ public class CreateForumServlet  extends HttpServlet {
             pstmt.setString(3, jsonRequest.getString("short_name"));
 
             pstmt.executeUpdate();
-
             pstmt = conn.prepareStatement("SELECT * FROM forum WHERE short_name=?");
             pstmt.setString(1, jsonRequest.getString("short_name"));
 
@@ -90,24 +81,9 @@ public class CreateForumServlet  extends HttpServlet {
             jsonResponse.put("code", status);
 
         }catch(SQLException ex){
-            /*System.out.println("SQLException caught");
-            System.out.println("---");
-            while (ex != null) {
-                System.out.println("Message   : " + ex.getMessage());
-                System.out.println("SQLState  : " + ex.getSQLState());
-                System.out.println("ErrorCode : " + ex.getErrorCode());
-                System.out.println(ex.getMessage());
-            }
-            System.out.println("---");
-            ex = ex.getNextException();*/
+            //ex.printStackTrace();
+            System.out.print("Duplicate UNIQ KEY in create Forum Servlet");
         } finally {
-            if (pstmt != null) {
-                try {
-                    pstmt.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
             if (conn != null) {
                 try {
                     conn.close();
@@ -116,9 +92,7 @@ public class CreateForumServlet  extends HttpServlet {
                 }
             }
         }
-
+        Main.connectionPool.printStatus();
         response.getWriter().println(jsonResponse);
     }
-
-
 }

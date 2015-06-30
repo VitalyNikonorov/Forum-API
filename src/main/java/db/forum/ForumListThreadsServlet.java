@@ -2,6 +2,7 @@ package db.forum;
 
 import db.user.UserInfo;
 import main.DBConnectionPool;
+import main.Main;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -19,15 +20,6 @@ import java.util.Map;
  */
 public class ForumListThreadsServlet extends HttpServlet {
 
-    private DataSource dataSource;
-    DBConnectionPool connectionPool;
-    Connection conn = null;
-
-    public ForumListThreadsServlet(DataSource dataSource, DBConnectionPool connectionPool){
-        this.dataSource = dataSource;
-        this.connectionPool = connectionPool;
-    }
-
     public void doGet(HttpServletRequest request,
                       HttpServletResponse response) throws ServletException, IOException {
 
@@ -43,9 +35,10 @@ public class ForumListThreadsServlet extends HttpServlet {
 
         ResultSet resultSet;
         Statement sqlQuery = null;
+        Connection conn = null;
         try {
-            conn = dataSource.getConnection();
-            connectionPool.printStatus();
+            conn = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
 
             sqlQuery = conn.createStatement();
 
@@ -66,21 +59,10 @@ public class ForumListThreadsServlet extends HttpServlet {
 
             resultSet = sqlQuery.executeQuery(sqlSelect);
 
-            createResponse(response, status, message, resultSet, related);
-
-            sqlQuery.close();
-            resultSet.close();
-            resultSet = null;
+            createResponse(conn, response, status, message, resultSet, related);
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            if (sqlQuery != null) {
-                try {
-                    sqlQuery.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
             if (conn != null) {
                 try {
                     conn.close();
@@ -89,9 +71,10 @@ public class ForumListThreadsServlet extends HttpServlet {
                 }
             }
         }
+        Main.connectionPool.printStatus();
     }
 
-    private void createResponse(HttpServletResponse response, short status, String message, ResultSet resultSet, String[] related) throws IOException, SQLException {
+    private void createResponse(Connection conn, HttpServletResponse response, short status, String message, ResultSet resultSet, String[] related) throws IOException, SQLException {
         response.setContentType("json;charset=UTF-8");
         response.setHeader("Cache-Control", "no-cache");
         response.setStatus(HttpServletResponse.SC_OK);
@@ -127,7 +110,7 @@ public class ForumListThreadsServlet extends HttpServlet {
             if (status == 0) {
                 int i = 0;
                 while (resultSet.next()) {
-                    listOfResponse.add(i, getThreadDetailsById(resultSet.getInt("id"), user, forum));
+                    listOfResponse.add(i, getThreadDetailsById(conn, resultSet.getInt("id"), user, forum));
                     i++;
                 }
                 obj.put("response", listOfResponse);
@@ -140,7 +123,7 @@ public class ForumListThreadsServlet extends HttpServlet {
         response.getWriter().write(obj.toString());
     }
 
-    public JSONObject getThreadDetailsById(int id, boolean user, boolean forum) throws IOException, SQLException{
+    public JSONObject getThreadDetailsById(Connection conn, int id, boolean user, boolean forum) throws IOException, SQLException{
 
         ResultSet resultSet;
         ResultSet resultSetCount;
@@ -178,31 +161,8 @@ public class ForumListThreadsServlet extends HttpServlet {
                         forumData.put("id", resultSetForum.getInt("id"));
                         forumData.put("short_name", resultSetForum.getString("short_name"));
                     }
-
-                    pstmtForum.close();
-                    pstmtForum = null;
-                    resultSetForum.close();
-                    resultSetForum = null;
-
                 }catch(SQLException ex) {
-                    //System.out.println("SQLException caught");
-                    //System.out.println("---");
-                    /*while (ex != null) {
-                        System.out.println("Message   : " + ex.getMessage());
-                        System.out.println("SQLState  : " + ex.getSQLState());
-                        System.out.println("ErrorCode : " + ex.getErrorCode());
-                        System.out.println(ex.getMessage());
-                    }
-                    System.out.println("---");
-                    ex = ex.getNextException();*/
-                } finally {
-                    if (pstmtForum != null) {
-                        try {
-                            pstmtForum.close();
-                        } catch (SQLException e) {
-                            e.printStackTrace();
-                        }
-                    }
+                    ex.printStackTrace();
                 }
                 data.put("forum", forumData);
 
@@ -227,19 +187,6 @@ public class ForumListThreadsServlet extends HttpServlet {
             String message = "There is no thread with such id!";
             data.put("error", message);
         }
-
-
-        pstmt.close();
-        pstmt = null;
-
-        pstmtCountPosts.close();
-        pstmtCountPosts = null;
-
-        resultSet.close();
-        resultSet = null;
-
-        resultSetCount.close();
-        resultSetCount = null;
 
         return data;
     }

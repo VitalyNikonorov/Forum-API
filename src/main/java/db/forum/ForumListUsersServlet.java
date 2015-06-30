@@ -2,6 +2,7 @@ package db.forum;
 
 import db.user.UserInfo;
 import main.DBConnectionPool;
+import main.Main;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -21,16 +22,6 @@ import java.util.Map;
  * Created by vitaly on 20.06.15.
  */
 public class ForumListUsersServlet extends HttpServlet {
-
-    private DataSource dataSource;
-    DBConnectionPool connectionPool;
-    Connection conn = null;
-
-    public ForumListUsersServlet(DataSource dataSource, DBConnectionPool connectionPool){
-        this.dataSource = dataSource;
-        this.connectionPool = connectionPool;
-    }
-
     public void doGet(HttpServletRequest request,
                       HttpServletResponse response) throws ServletException, IOException {
 
@@ -49,20 +40,16 @@ public class ForumListUsersServlet extends HttpServlet {
         short status = 0;
         String message = "";
 
+        Connection conn = null;
         ResultSet resultSet;
         Statement sqlQuery = null;
         try {
-            conn = dataSource.getConnection();
-            connectionPool.printStatus();
+            conn = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
 
             sqlQuery = conn.createStatement();
-/*select * from users where email in (select distinct user from posts where forum = 'tdxz4h8oaq') order by name desc limit 70;*/
-
-            String sqlSelect = "select * from users where id in (1, 3, 6, 7, 8) "; // /*email = \'iroax@gmail.com" + /*in (select distinct user_email from post where forum =\'" +forum+ */ "\') ";
-
-           /*
-            String sqlSelect = "SELECT DISTINCT U.id FROM post P JOIN users U ON P.user_email = U.email WHERE (P.forum=\'" +forum+ "\' " +
-                "AND U.id > "+since_id+") ORDER BY U.name " +order;*/
+/*id in (1, 3, 6, 7, 8) */
+            String sqlSelect = "select * from users where email = in (select distinct user_email from post where forum =\'" +forum+ "\') ";
 
             if (!since_id.equals("-1")){
                 sqlSelect = sqlSelect + "AND id > "+since_id+" ORDER BY name " +order;
@@ -77,25 +64,11 @@ public class ForumListUsersServlet extends HttpServlet {
             }
 
             resultSet = sqlQuery.executeQuery(sqlSelect);
-            createResponse(response, status, message, resultSet);
-
-            sqlQuery.close();
-            sqlQuery = null;
-
-            resultSet.close();
-            resultSet = null;
+            createResponse(conn, response, status, message, resultSet);
 
         } catch (SQLException e) {
-
             e.printStackTrace();
         } finally {
-            if (sqlQuery != null) {
-                try {
-                    sqlQuery.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
             if (conn != null) {
                 try {
                     conn.close();
@@ -104,9 +77,10 @@ public class ForumListUsersServlet extends HttpServlet {
                 }
             }
         }
+        Main.connectionPool.printStatus();
     }
 
-    private void createResponse(HttpServletResponse response, short status, String message, ResultSet resultSet) throws IOException, SQLException {
+    private void createResponse(Connection conn, HttpServletResponse response, short status, String message, ResultSet resultSet) throws IOException, SQLException {
 
         response.setContentType("json;charset=UTF-8");
         response.setHeader("Cache-Control", "no-cache");

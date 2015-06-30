@@ -1,6 +1,7 @@
 package db;
 
 import db.user.UserInfo;
+import main.Main;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -15,8 +16,8 @@ import java.sql.*;
  * Created by vitaly on 23.06.15.
  */
 public class Status extends HttpServlet {
-    private Connection connection;
-    public Status(Connection connection){ this.connection = connection; }
+    //private Connection connection;
+    //public Status(Connection connection){ this.connection = connection; }
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
@@ -29,8 +30,11 @@ public class Status extends HttpServlet {
         int threads = 0;
         int forums = 0;
         int posts = 0;
-
+        Connection connection = null;
         try {
+            connection = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
+
             Statement sqlQuery = connection.createStatement();
             ResultSet rs = null;
             String query;
@@ -78,7 +82,7 @@ public class Status extends HttpServlet {
             sqlQuery.close();
             rs.close(); rs = null;
         }catch (SQLException ex){
-            System.out.println("SQLException caught");
+            /*System.out.println("SQLException caught");
             System.out.println("---");
             while ( ex != null ){
                 System.out.println("Message   : " + ex.getMessage());
@@ -86,6 +90,15 @@ public class Status extends HttpServlet {
                 System.out.println("ErrorCode : " + ex.getErrorCode());
                 System.out.println("---");
                 ex = ex.getNextException();
+            }*/
+            ex.printStackTrace();
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             }
         }
         response.getWriter().println(jsonResponse);

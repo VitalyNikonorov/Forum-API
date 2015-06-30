@@ -2,6 +2,7 @@ package db.post;
 
 import db.user.UserInfo;
 import main.DBConnectionPool;
+import main.Main;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -17,17 +18,6 @@ import java.util.ArrayList;
  * Created by vitaly on 21.06.15.
  */
 public class ListPostsServlet extends HttpServlet {
-
-
-    private DataSource dataSource;
-    DBConnectionPool connectionPool;
-    Connection conn = null;
-
-    public ListPostsServlet(DataSource dataSource, DBConnectionPool connectionPool) {
-        this.dataSource = dataSource;
-        this.connectionPool = connectionPool;
-    }
-
 
     public void doGet(HttpServletRequest request,
                       HttpServletResponse response) throws ServletException, IOException {
@@ -46,10 +36,10 @@ public class ListPostsServlet extends HttpServlet {
             message = "Incorrect JSON";
         }
         Statement sqlQuery = null;
-
+        Connection conn = null;
         try {
-            conn = dataSource.getConnection();
-            connectionPool.printStatus();
+            conn = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
             sqlQuery = conn.createStatement();
             ResultSet resultSet = null;
             String sqlSelect;
@@ -91,10 +81,6 @@ public class ListPostsServlet extends HttpServlet {
                 }
             }
             createResponse(response, status, message, resultSet);
-
-            resultSet.close();
-            resultSet = null;
-
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
@@ -113,6 +99,7 @@ public class ListPostsServlet extends HttpServlet {
                 }
             }
         }
+        Main.connectionPool.printStatus();
     }
 
     private void createResponse(HttpServletResponse response, short status, String message, ResultSet resultSet) throws IOException, SQLException {

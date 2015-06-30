@@ -1,6 +1,7 @@
 package db.user;
 
 import main.DBConnectionPool;
+import main.Main;
 import org.json.JSONObject;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -18,15 +19,6 @@ import java.util.Map;
  */
 public class FollowUserServlet extends HttpServlet {
 
-    private DataSource dataSource;
-    DBConnectionPool connectionPool;
-    Connection conn = null;
-
-    public FollowUserServlet(DataSource dataSource, DBConnectionPool connectionPool){
-        this.dataSource = dataSource;
-        this.connectionPool = connectionPool;
-    }
-
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
 
@@ -43,10 +35,11 @@ public class FollowUserServlet extends HttpServlet {
         JSONObject jsonObject = new JSONObject(jb.toString());
 
         Statement sqlQuery = null;
+        Connection conn = null;
         // Database
         try {
-            conn = dataSource.getConnection();
-            connectionPool.printStatus();
+            conn = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
 
             sqlQuery = conn.createStatement();
             ResultSet rs = null;
@@ -72,26 +65,11 @@ public class FollowUserServlet extends HttpServlet {
             jsonResponse = db.user.UserInfo.getFullUserInfo(conn, jsonObject.get("follower").toString());
         }
         catch (SQLException ex){
-           /* System.out.println("SQLException caught");
-            System.out.println("---");
-            while ( ex != null ){
-                System.out.println("Message   : " + ex.getMessage());
-                System.out.println("SQLState  : " + ex.getSQLState());
-                System.out.println("ErrorCode : " + ex.getErrorCode());
-                System.out.println("---");
-                ex = ex.getNextException();
-            }
-            */
+            //ex.printStackTrace();
+            System.out.print("Duplicate or other in follow servlet");
         }catch (Exception ex){
-            //System.out.println("Other Error in FollowUserServlet.");
+            ex.printStackTrace();
         } finally {
-            if (sqlQuery != null) {
-                try {
-                    sqlQuery.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
             if (conn != null) {
                 try {
                     conn.close();
@@ -100,6 +78,7 @@ public class FollowUserServlet extends HttpServlet {
                 }
             }
         }
+        Main.connectionPool.printStatus();
         //Database!!!!
 
         response.getWriter().println(jsonResponse);

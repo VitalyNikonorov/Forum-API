@@ -120,21 +120,9 @@ public class UserInfo {
 
             jsonResponse.put("code", 0);
             jsonResponse.put("response", user);
-
-            sqlQuery.close();
-            pstmt.close();
-            rs.close(); rs=null;
         }
         catch (SQLException ex){
-            System.out.println("SQLException caught");
-            System.out.println("---");
-            while ( ex != null ){
-                System.out.println("Message   : " + ex.getMessage());
-                System.out.println("SQLState  : " + ex.getSQLState());
-                System.out.println("ErrorCode : " + ex.getErrorCode());
-                System.out.println("---");
-                ex = ex.getNextException();
-            }
+            ex.printStackTrace();
         }
         catch (Exception ex){
             System.out.println("Other Error in userinfo.");
@@ -246,21 +234,9 @@ public class UserInfo {
 
             user.put("following", following);
             user.put("followers", followers);
-
-            pstmt.close();
-            sqlQuery.close();
-            rs.close(); rs=null;
         }
         catch (SQLException ex){
-            System.out.println("SQLException caught");
-            System.out.println("---");
-            while ( ex != null ){
-                System.out.println("Message   : " + ex.getMessage());
-                System.out.println("SQLState  : " + ex.getSQLState());
-                System.out.println("ErrorCode : " + ex.getErrorCode());
-                System.out.println("---");
-                ex = ex.getNextException();
-            }
+            ex.printStackTrace();
         }
         catch (Exception ex){
             System.out.println("Other Error in userinfo.");
@@ -287,21 +263,9 @@ public class UserInfo {
                 //Parse values
                 id = new Integer(rs.getString("id"));
             }
-
-            pstmt.close();
-            rs.close();
-            rs = null;
         }
         catch (SQLException ex){
-            System.out.println("SQLException caught");
-            System.out.println("---");
-            while ( ex != null ){
-                System.out.println("Message   : " + ex.getMessage());
-                System.out.println("SQLState  : " + ex.getSQLState());
-                System.out.println("ErrorCode : " + ex.getErrorCode());
-                System.out.println("---");
-                ex = ex.getNextException();
-            }
+            ex.printStackTrace();
         }
         catch (Exception ex){
             System.out.println("Other Error in userinfo.");

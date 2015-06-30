@@ -1,5 +1,6 @@
 package db.thread;
 
+import main.Main;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -19,9 +20,6 @@ import static db.user.UserInfo.getUserIdByEmail;
  */
 public class UnsubscribeThreadServlet extends HttpServlet {
 
-    private Connection connection;
-    public UnsubscribeThreadServlet(Connection connection){ this.connection = connection; }
-
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
 
@@ -31,7 +29,9 @@ public class UnsubscribeThreadServlet extends HttpServlet {
             BufferedReader reader = request.getReader();
             while ((line = reader.readLine()) != null)
                 jb.append(line);
-        } catch (Exception e) { /*report an error*/ }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         JSONObject JSONRequest = new JSONObject(jb.toString());
 
@@ -51,15 +51,19 @@ public class UnsubscribeThreadServlet extends HttpServlet {
 
         int result = 0;
         String query;
-
-        int userId = getUserIdByEmail(connection, email);
-        if (userId < 1) {
-            status = 1;
-            message = "There is no such USER";
-        }
-
-        Statement sqlQuery = null;
+        Connection connection = null;
         try {
+            connection = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
+
+            int userId = getUserIdByEmail(connection, email);
+            if (userId < 1) {
+                status = 1;
+                message = "There is no such USER";
+            }
+
+            Statement sqlQuery = null;
+
             if (status == 0) {
                 sqlQuery = connection.createStatement();
                 query = "delete subscribtion from subscribtion where user_id = " + userId + " and thread_id = " + threadId + ";";
@@ -70,11 +74,16 @@ public class UnsubscribeThreadServlet extends HttpServlet {
                 }
             }
             createResponse(response, status, message, threadId, email);
-            if (sqlQuery != null){
-                sqlQuery.close();
-            }
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 

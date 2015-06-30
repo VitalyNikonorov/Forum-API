@@ -1,5 +1,6 @@
 package db;
 
+import main.Main;
 import org.json.JSONObject;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -15,15 +16,15 @@ import java.util.Map;
  */
 public class ClearServlet extends HttpServlet {
 
-    private Connection connection;
-    public ClearServlet(Connection connection){ this.connection = connection; }
-
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
         JSONObject jsonResponse = new JSONObject();
 
                     /* Database*/
+        Connection connection = null;
         try {
+            connection = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
 
             Statement sqlQuery = connection.createStatement();
 
@@ -37,18 +38,18 @@ public class ClearServlet extends HttpServlet {
             sqlQuery.close();
         }
         catch (SQLException ex){
-            System.out.println("SQLException caught");
-            System.out.println("---");
-            while ( ex != null ){
-                System.out.println("Message   : " + ex.getMessage());
-                System.out.println("SQLState  : " + ex.getSQLState());
-                System.out.println("ErrorCode : " + ex.getErrorCode());
-                System.out.println("---");
-                ex = ex.getNextException();
-            }
+            ex.printStackTrace();
         }
         catch (Exception ex){
             System.out.println("Other Error ClearServlet.");
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         jsonResponse.put("code", 0);
         jsonResponse.put("response", "OK");

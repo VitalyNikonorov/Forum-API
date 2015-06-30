@@ -1,6 +1,7 @@
 package db.user;
 
 import main.DBConnectionPool;
+import main.Main;
 import org.json.JSONObject;
 import utilities.JsonHelper;
 
@@ -18,16 +19,6 @@ import java.util.Map;
  * Created by Виталий on 31.05.2015.
  */
 public class CreateUserServlet extends HttpServlet {
-
-    private DataSource dataSource;
-    DBConnectionPool connectionPool;
-    Connection conn = null;
-
-    public CreateUserServlet(DataSource dataSource, DBConnectionPool connectionPool){
-        this.dataSource = dataSource;
-        this.connectionPool = connectionPool;
-    }
-
     private boolean valideteUser(JSONObject jso){
         fixUserProperty(jso, "name");
         fixUserProperty(jso, "username");
@@ -71,9 +62,10 @@ public class CreateUserServlet extends HttpServlet {
 
         // Database
         PreparedStatement pstmt = null;
+        Connection conn = null;
         try {
-            conn = dataSource.getConnection();
-            connectionPool.printStatus();
+            conn = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
 
             if (! valideteUser(jsonRequest)){
                 errorResponse(response, jsonResponse);
@@ -101,7 +93,6 @@ public class CreateUserServlet extends HttpServlet {
             ResultSet rs = null;
 
             rs = pstmt.executeQuery();
-
 
             Map<String, Object> user = new HashMap<>();
 
@@ -143,18 +134,10 @@ public class CreateUserServlet extends HttpServlet {
             }
         }
         catch (Exception ex){
-
             errorResponse(response, jsonResponse);
             System.out.println("Other Error in CreateUserServlet.");
             return;
         } finally {
-            if (pstmt != null) {
-                try {
-                    pstmt.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
             if (conn != null) {
                 try {
                     conn.close();
@@ -163,6 +146,7 @@ public class CreateUserServlet extends HttpServlet {
                 }
             }
         }
+        Main.connectionPool.printStatus();
         //Database!!!!
 
         response.getWriter().println(jsonResponse);

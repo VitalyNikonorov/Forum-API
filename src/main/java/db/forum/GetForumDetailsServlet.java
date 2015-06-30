@@ -2,6 +2,7 @@ package db.forum;
 
 import db.user.UserInfo;
 import main.DBConnectionPool;
+import main.Main;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -16,15 +17,6 @@ import java.sql.*;
  * Created by vitaly on 14.06.15.
  */
 public class GetForumDetailsServlet extends HttpServlet {
-
-    private DataSource dataSource;
-    DBConnectionPool connectionPool;
-    Connection conn = null;
-
-    public GetForumDetailsServlet(DataSource dataSource, DBConnectionPool connectionPool){
-        this.dataSource = dataSource;
-        this.connectionPool = connectionPool;
-    }
 
     public void doGet(HttpServletRequest request,
                       HttpServletResponse response) throws ServletException, IOException {
@@ -72,9 +64,10 @@ public class GetForumDetailsServlet extends HttpServlet {
 
         JSONObject data = new JSONObject();
         PreparedStatement pstmt = null;
+        Connection conn = null;
         try {
-            conn = dataSource.getConnection();
-            connectionPool.printStatus();
+            conn = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
             ResultSet resultSet = null;
 
             pstmt = conn.prepareStatement("select * from forum where short_name = ?");
@@ -93,29 +86,9 @@ public class GetForumDetailsServlet extends HttpServlet {
             } else {
                 data = null;
             }
-            resultSet.close();
-            resultSet = null;
-
-
-            }catch(SQLException ex) {
-            //System.out.println("SQLException caught");
-            //System.out.println("---");
-            /*while (ex != null) {
-                System.out.println("Message   : " + ex.getMessage());
-                System.out.println("SQLState  : " + ex.getSQLState());
-                System.out.println("ErrorCode : " + ex.getErrorCode());
-                System.out.println(ex.getMessage());
-            }
-            System.out.println("---");
-            ex = ex.getNextException();*/
+        }catch(SQLException ex) {
+            ex.printStackTrace();
         } finally {
-            if (pstmt != null) {
-                try {
-                    pstmt.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
             if (conn != null) {
                 try {
                     conn.close();
@@ -124,6 +97,7 @@ public class GetForumDetailsServlet extends HttpServlet {
                 }
             }
         }
+        Main.connectionPool.printStatus();
         return data;
     }
 

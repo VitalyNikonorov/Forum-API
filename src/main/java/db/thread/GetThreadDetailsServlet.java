@@ -1,6 +1,7 @@
 package db.thread;
 
 import db.user.UserInfo;
+import main.Main;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -15,11 +16,6 @@ import java.util.Map;
  * Created by vitaly on 14.06.15.
  */
 public class GetThreadDetailsServlet extends HttpServlet {
-    private Connection connection;
-
-    public GetThreadDetailsServlet(Connection connection){
-        this.connection = connection;
-    }
 
     public void doGet(HttpServletRequest request,
                       HttpServletResponse response) throws ServletException, IOException {
@@ -77,100 +73,101 @@ public class GetThreadDetailsServlet extends HttpServlet {
     }
 
 
-    public JSONObject getThreadDetailsById(int id, boolean user, boolean forum) throws IOException, SQLException{
-        //Остановился тут!!!!!!!
-
+    public JSONObject getThreadDetailsById(int id, boolean user, boolean forum) throws IOException {
 
         ResultSet resultSet;
         ResultSet resultSetCount;
-
-        PreparedStatement pstmt = connection.prepareStatement("select * from thread where id = ?");
-        pstmt.setInt(1, id);
-
-        resultSet = pstmt.executeQuery();
-
-        PreparedStatement pstmtCountPosts = connection.prepareStatement("select count(*) as amount from post where thread = " + id + " and isDeleted = 0;");
-
-        resultSetCount = pstmtCountPosts.executeQuery();
-
+        Connection connection = null;
+        PreparedStatement pstmt = null;
         JSONObject data = new JSONObject();
+        try {
+            connection = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
 
-        if (resultSet.next() && resultSetCount.next()) {
-            data.put("date", resultSet.getString("date_of_creating").substring(0, 19));
-            data.put("dislikes", resultSet.getInt("dislikes"));
-            if (forum) {
-                //TODO  - исправить - вынести в отельную функцию
+            pstmt = connection.prepareStatement("select * from thread where id = ?");
+            pstmt.setInt(1, id);
+
+            resultSet = pstmt.executeQuery();
+
+            PreparedStatement pstmtCountPosts = connection.prepareStatement("select count(*) as amount from post where thread = " + id + " and isDeleted = 0;");
+
+            resultSetCount = pstmtCountPosts.executeQuery();
+
+            if (resultSet.next() && resultSetCount.next()) {
+                data.put("date", resultSet.getString("date_of_creating").substring(0, 19));
+                data.put("dislikes", resultSet.getInt("dislikes"));
+                if (forum) {
+                    //TODO  - исправить - вынести в отельную функцию
 
 
-                JSONObject forumData = new JSONObject();
-                try {
-                    ResultSet resultSetForum;
+                    JSONObject forumData = new JSONObject();
+                    try {
+                        ResultSet resultSetForum;
 
-                    PreparedStatement pstmtForum = connection.prepareStatement("select * from forum where short_name = ?");
-                    pstmtForum.setString(1, resultSet.getString("forum"));
-                    resultSetForum = pstmtForum.executeQuery();
+                        PreparedStatement pstmtForum = connection.prepareStatement("select * from forum where short_name = ?");
+                        pstmtForum.setString(1, resultSet.getString("forum"));
+                        resultSetForum = pstmtForum.executeQuery();
 
 
-                    if (resultSetForum.next()) {
-                        forumData.put("user", resultSetForum.getString("user_email"));
-                        forumData.put("name", resultSetForum.getString("name"));
-                        forumData.put("id", resultSetForum.getInt("id"));
-                        forumData.put("short_name", resultSetForum.getString("short_name"));
+                        if (resultSetForum.next()) {
+                            forumData.put("user", resultSetForum.getString("user_email"));
+                            forumData.put("name", resultSetForum.getString("name"));
+                            forumData.put("id", resultSetForum.getInt("id"));
+                            forumData.put("short_name", resultSetForum.getString("short_name"));
+                        }
+
+                        //pstmtForum.close();
+                        //pstmtForum = null;
+                        //resultSetForum.close();
+                        //resultSetForum = null;
+
+                    }catch(SQLException ex) {
+                        System.out.println("SQLException caught");
+                        System.out.println("---");
+                        while (ex != null) {
+                            System.out.println("Message   : " + ex.getMessage());
+                            System.out.println("SQLState  : " + ex.getSQLState());
+                            System.out.println("ErrorCode : " + ex.getErrorCode());
+                            System.out.println(ex.getMessage());
+                        }
+                        System.out.println("---");
+                        ex = ex.getNextException();
                     }
+                    data.put("forum", forumData);
 
-                    pstmtForum.close();
-                    pstmtForum = null;
-                    resultSetForum.close();
-                    resultSetForum = null;
-
-                }catch(SQLException ex) {
-                    System.out.println("SQLException caught");
-                    System.out.println("---");
-                    while (ex != null) {
-                        System.out.println("Message   : " + ex.getMessage());
-                        System.out.println("SQLState  : " + ex.getSQLState());
-                        System.out.println("ErrorCode : " + ex.getErrorCode());
-                        System.out.println(ex.getMessage());
-                    }
-                    System.out.println("---");
-                    ex = ex.getNextException();
+                } else {
+                    data.put("forum", resultSet.getString("forum"));
                 }
-                data.put("forum", forumData);
-
+                data.put("id", resultSet.getInt("id"));
+                data.put("isClosed", resultSet.getBoolean("isClosed"));
+                data.put("isDeleted", resultSet.getBoolean("isDeleted"));
+                data.put("likes", resultSet.getInt("likes"));
+                data.put("message", resultSet.getString("message"));
+                data.put("points", resultSet.getInt("likes") - resultSet.getInt("dislikes") );
+                data.put("posts", resultSetCount.getInt("amount"));
+                data.put("slug", resultSet.getString("slug"));
+                data.put("title", resultSet.getString("title"));
+                if (user) {
+                    data.put("user", UserInfo.getFullUserInfo(connection, resultSet.getString("user_email")).get("response"));
+                } else {
+                    data.put("user", resultSet.getString("user_email"));
+                }
             } else {
-                data.put("forum", resultSet.getString("forum"));
+                String message = "There is no thread with such id!";
+                data.put("error", message);
             }
-            data.put("id", resultSet.getInt("id"));
-            data.put("isClosed", resultSet.getBoolean("isClosed"));
-            data.put("isDeleted", resultSet.getBoolean("isDeleted"));
-            data.put("likes", resultSet.getInt("likes"));
-            data.put("message", resultSet.getString("message"));
-            data.put("points", resultSet.getInt("likes") - resultSet.getInt("dislikes") );
-            data.put("posts", resultSetCount.getInt("amount"));
-            data.put("slug", resultSet.getString("slug"));
-            data.put("title", resultSet.getString("title"));
-            if (user) {
-                data.put("user", UserInfo.getFullUserInfo(connection, resultSet.getString("user_email")).get("response"));
-            } else {
-                data.put("user", resultSet.getString("user_email"));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             }
-        } else {
-            String message = "There is no thread with such id!";
-            data.put("error", message);
         }
-
-        pstmtCountPosts.close();
-        pstmtCountPosts = null;
-
-        pstmt.close();
-        pstmt = null;
-
-        resultSet.close();
-        resultSet = null;
-
-        resultSetCount.close();
-        resultSetCount = null;
-
+        Main.connectionPool.printStatus();
         return data;
     }
 

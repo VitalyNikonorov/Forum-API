@@ -1,5 +1,6 @@
 package db.thread;
 
+import main.Main;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -17,10 +18,6 @@ import java.sql.Statement;
  */
 //
 public class OpenThreadServlet extends HttpServlet {
-
-
-    private Connection connection;
-    public OpenThreadServlet(Connection connection){ this.connection = connection; }
 
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
@@ -46,8 +43,11 @@ public class OpenThreadServlet extends HttpServlet {
             message = "Incorrect Request JSON";
         }
 
-
+        Connection connection = null ;
         try {
+            connection = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
+
             Statement sqlQuery = connection.createStatement();
             int result = 0;
             String query;
@@ -61,10 +61,18 @@ public class OpenThreadServlet extends HttpServlet {
                 }
             }
             createResponse(response, status, message, threadId);
-            sqlQuery.close();
-            sqlQuery = null;
         } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
+        Main.connectionPool.printStatus();
 
     }
 

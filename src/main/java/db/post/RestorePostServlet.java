@@ -1,6 +1,7 @@
 package db.post;
 
 import main.DBConnectionPool;
+import main.Main;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -18,16 +19,6 @@ import java.sql.Statement;
  * Created by vitaly on 21.06.15.
  */
 public class RestorePostServlet extends HttpServlet {
-
-    private DataSource dataSource;
-    DBConnectionPool connectionPool;
-    Connection conn = null;
-
-    public RestorePostServlet(DataSource dataSource, DBConnectionPool connectionPool){
-        this.dataSource = dataSource;
-        this.connectionPool = connectionPool;
-    }
-
 
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
@@ -54,11 +45,12 @@ public class RestorePostServlet extends HttpServlet {
         }
 
         int result = 0;
+        Connection conn = null;
         String query;
         Statement sqlQuery = null;
         try {
-            conn = dataSource.getConnection();
-            connectionPool.printStatus();
+            conn = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
             sqlQuery = conn.createStatement();
 
             if (status == 0) {
@@ -77,13 +69,6 @@ public class RestorePostServlet extends HttpServlet {
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            if (sqlQuery != null) {
-                try {
-                    sqlQuery.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
             if (conn != null) {
                 try {
                     conn.close();
@@ -92,6 +77,7 @@ public class RestorePostServlet extends HttpServlet {
                 }
             }
         }
+        Main.connectionPool.printStatus();
     }
 
     private void createResponse(HttpServletResponse response, short status, String message, long postId) throws IOException, SQLException {

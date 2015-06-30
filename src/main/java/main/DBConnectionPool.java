@@ -5,6 +5,7 @@ import org.apache.commons.dbcp.DriverManagerConnectionFactory;
 import org.apache.commons.dbcp.PoolableConnectionFactory;
 import org.apache.commons.dbcp.PoolingDataSource;
 import org.apache.commons.pool.impl.GenericObjectPool;
+import utilities.XPathAdapter;
 
 import javax.sql.DataSource;
 
@@ -13,9 +14,9 @@ import javax.sql.DataSource;
  */
 public class DBConnectionPool {
     public static final String DRIVER = "com.mysql.jdbc.Driver";
-    public static final String URL = "jdbc:mysql://localhost:3306/testdb";
-    public static final String USERNAME = "root";
-    public static final String PASSWORD = "";
+    public static final String URL = "jdbc:mysql://localhost:3306/" + XPathAdapter.getValue("resources/config.xml", "/class/MySQL.DB");
+    public static final String USERNAME = XPathAdapter.getValue("resources/config.xml", "/class/MySQL.user");
+    public static final String PASSWORD = XPathAdapter.getValue("resources/config.xml", "/class/MySQL.pass");
 
     private GenericObjectPool connectionPool = null;
 
@@ -30,7 +31,7 @@ public class DBConnectionPool {
         // pool of connections object.
         //
         connectionPool = new GenericObjectPool();
-        connectionPool.setMaxActive(12);
+        connectionPool.setMaxActive(new Integer(XPathAdapter.getValue("resources/config.xml", "/class/Max")));
 
         //
         // Creates a connection factory object which will be use by
@@ -58,8 +59,8 @@ public class DBConnectionPool {
     }
 
     public void printStatus() {
-        System.out.println("Max   : " + getConnectionPool().getMaxActive() + "; " +
+        /*System.out.println("Max   : " + getConnectionPool().getMaxActive() + "; " +
                 "Active: " + getConnectionPool().getNumActive() + "; " +
-                "Idle  : " + getConnectionPool().getNumIdle());
+                "Idle  : " + getConnectionPool().getNumIdle());*/
     }
 }

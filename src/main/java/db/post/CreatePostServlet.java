@@ -1,6 +1,7 @@
 package db.post;
 
 import main.DBConnectionPool;
+import main.Main;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -19,20 +20,8 @@ import java.util.Map;
  */
 public class CreatePostServlet  extends HttpServlet {
 
-    private DataSource dataSource;
-    DBConnectionPool connectionPool;
-
-    Connection conn = null;
-    PreparedStatement stmt = null;
-
-    public CreatePostServlet(DataSource dataSource, DBConnectionPool connectionPool){
-        this.dataSource = dataSource;
-        this.connectionPool = connectionPool;
-    }
-
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
-
 
         StringBuffer jb = new StringBuffer();
         String line = null;
@@ -87,37 +76,39 @@ public class CreatePostServlet  extends HttpServlet {
         long thread =  jsonRequest.getLong("thread");
         String date = (String)jsonRequest.get("date");
         JSONObject data = null;
+        Connection conn = null;
         try {
-            conn = dataSource.getConnection();
-            connectionPool.printStatus();
-        String matPath = "";
-        if (parentId != 0) {
-            String parent = null;
+            conn = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
 
-            try {
-                parent = getParentPathByParentId(parentId);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            String matPath = "";
+            if (parentId != 0) {
+                String parent = null;
 
-            if (parent == null) {
-                status = 1;
-                message = "There is no so parent";
-            } else {
-                if (parent.equals("")) {
-                    matPath = String.format("%03d", parentId);
+                try {
+                    parent = getParentPathByParentId(conn, parentId);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
+                if (parent == null) {
+                    status = 1;
+                    message = "There is no so parent";
                 } else {
-                    matPath = parent + String.format("_%03d", parentId);
+                    if (parent.equals("")) {
+                        matPath = String.format("%03d", parentId);
+                    } else {
+                        matPath = parent + String.format("_%03d", parentId);
+                    }
                 }
             }
-        }
 
 
             if (status == 0) {
                 PreparedStatement pstmt;
                 try {
-                    if (checkForum(forum)) {
-                        if (checkUser(user)) {
+                    if (checkForum(conn, forum)) {
+                        if (checkUser(conn, user)) {
                             pstmt = conn.prepareStatement(
                                     "INSERT INTO post (isDeleted, isEdited, isApproved, isSpam, isHighlighted, user_email, forum, thread, parent, message, date_of_creating) " +
                                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
@@ -134,10 +125,6 @@ public class CreatePostServlet  extends HttpServlet {
                             pstmt.setString(10, messagePost);
                             pstmt.setString(11, date);
 
-                            pstmt.executeUpdate();
-                            pstmt.close();
-
-                            /////////////////
                             int id = 1;
 /*                            int id = -1;
 
@@ -186,10 +173,6 @@ public class CreatePostServlet  extends HttpServlet {
                                 status = 1;
                                 message = "Some error in CreatePostServlet";
                             }
-
-                            pstmt.close();
-                            pstmt = null;
-
                         }else {
                             status = 1;
                             message = "There is now this user";
@@ -203,20 +186,13 @@ public class CreatePostServlet  extends HttpServlet {
                 }
             }
             try {
-                createResponse(response, status, message, data);
+                createResponse(conn, response, status, message, data);
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            if (stmt != null) {
-                try {
-                    stmt.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
             if (conn != null) {
                 try {
                     conn.close();
@@ -225,11 +201,10 @@ public class CreatePostServlet  extends HttpServlet {
                 }
             }
         }
-
-
+        Main.connectionPool.printStatus();
     }
 
-    private void createResponse(HttpServletResponse response, short status, String message, JSONObject data) throws IOException, SQLException {
+    private void createResponse(Connection conn, HttpServletResponse response, short status, String message, JSONObject data) throws IOException, SQLException {
         response.setContentType("json;charset=UTF-8");
         response.setHeader("Cache-Control", "no-cache");
         response.setStatus(HttpServletResponse.SC_OK);
@@ -244,7 +219,7 @@ public class CreatePostServlet  extends HttpServlet {
         response.getWriter().write(obj.toString());
     }
 
-    public String getParentPathByParentId(long parentId) throws SQLException {
+    public String getParentPathByParentId(Connection conn, long parentId) throws SQLException {
 
         ResultSet resultSet;
         PreparedStatement pstmt = conn.prepareStatement(
@@ -261,17 +236,11 @@ public class CreatePostServlet  extends HttpServlet {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        pstmt.close();
-        pstmt = null;
-
-        resultSet.close();
-        resultSet = null;
         return parent;
     }
 
 
-    public boolean checkUser(String email) throws SQLException {
+    public boolean checkUser(Connection conn, String email) throws SQLException {
 
         boolean response = false;
         PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM users WHERE email=?");
@@ -280,15 +249,11 @@ public class CreatePostServlet  extends HttpServlet {
         ResultSet rs = null;
         rs = pstmt.executeQuery();
         if (rs.next()) response = true;
-
-        pstmt.close();
-        rs.close();
-        rs = null;
         return response;
     }
 
 
-    public boolean checkForum(String short_name) throws SQLException {
+    public boolean checkForum(Connection conn, String short_name) throws SQLException {
 
         boolean response = false;
 
@@ -297,10 +262,6 @@ public class CreatePostServlet  extends HttpServlet {
         ResultSet rs = pstmt.executeQuery();
 
         if (rs.next()) response = true;
-
-        pstmt.close();
-        rs.close();
-        rs = null;
         return response;
     }
 }

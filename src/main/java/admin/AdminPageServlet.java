@@ -20,8 +20,6 @@ import java.util.Map;
  */
 public class AdminPageServlet extends HttpServlet {
     public static final String adminPageURL = "/admin";
-    private Connection connection;
-    public AdminPageServlet(Connection connection){ this.connection = connection; }
 
     public void doGet(HttpServletRequest request,
                       HttpServletResponse response) throws ServletException, IOException {
@@ -35,25 +33,7 @@ public class AdminPageServlet extends HttpServlet {
             System.out.print("Server will be down after: "+ timeMS + " ms");
             TimeHelper.sleep(timeMS);
             System.out.print("\nShutdown");
-            try {
-                connection.close();
-            }
-            catch (SQLException ex){
-                System.out.println("SQLException caught");
-                System.out.println("---");
-                while ( ex != null ){
-                    System.out.println("Message   : " + ex.getMessage());
-                    System.out.println("SQLState  : " + ex.getSQLState());
-                    System.out.println("ErrorCode : " + ex.getErrorCode());
-                    System.out.println("---");
-                    ex = ex.getNextException();
-                }
-            }
-            catch (Exception ex){
-                System.out.println("Other Error in AdminPageServlet.");
-            }
-
-            System.exit(0);
+             System.exit(0);
         }
 
         response.getWriter().println(PageGenerator.getPage("admin.tml", pageVariables));

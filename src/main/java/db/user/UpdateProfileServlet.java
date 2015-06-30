@@ -1,6 +1,7 @@
 package db.user;
 
 import main.DBConnectionPool;
+import main.Main;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -22,15 +23,6 @@ import java.util.Map;
  */
 public class UpdateProfileServlet extends HttpServlet {
 
-    private DataSource dataSource;
-    DBConnectionPool connectionPool;
-    Connection conn = null;
-
-    public UpdateProfileServlet(DataSource dataSource, DBConnectionPool connectionPool){
-        this.dataSource = dataSource;
-        this.connectionPool = connectionPool;
-    }
-
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
 
@@ -47,9 +39,10 @@ public class UpdateProfileServlet extends HttpServlet {
 
         // Database
         Statement sqlQuery = null;
+        Connection conn = null;
         try {
-            conn = dataSource.getConnection();
-            connectionPool.printStatus();
+            conn = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
 
             sqlQuery = conn.createStatement();
             String sqlUpdate;
@@ -59,25 +52,10 @@ public class UpdateProfileServlet extends HttpServlet {
             jsonResponse = db.user.UserInfo.getFullUserInfo(conn, jsonObject.get("user").toString());
 
         } catch (SQLException ex) {
-            System.out.println("SQLException caught");
-            System.out.println("---");
-            while (ex != null) {
-                System.out.println("Message   : " + ex.getMessage());
-                System.out.println("SQLState  : " + ex.getSQLState());
-                System.out.println("ErrorCode : " + ex.getErrorCode());
-                System.out.println("---");
-                ex = ex.getNextException();
-            }
+            ex.printStackTrace();
         } catch (Exception ex) {
             System.out.println("Other Error in UpdateProfileUserServlet.");
         } finally {
-            if (sqlQuery != null) {
-                try {
-                    sqlQuery.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
             if (conn != null) {
                 try {
                     conn.close();
@@ -86,6 +64,7 @@ public class UpdateProfileServlet extends HttpServlet {
                 }
             }
         }
+        Main.connectionPool.printStatus();
         //Database!!!!
         response.getWriter().println(jsonResponse);
     }

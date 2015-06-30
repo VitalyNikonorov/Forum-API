@@ -1,6 +1,7 @@
 package db.post;
 
 import main.DBConnectionPool;
+import main.Main;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -19,18 +20,6 @@ import java.sql.Statement;
  * Created by vitaly on 21.06.15.
  */
 public class RemovePostServlet extends HttpServlet {
-
-    private DataSource dataSource;
-    DBConnectionPool connectionPool;
-
-    Connection conn = null;
-    //PreparedStatement stmt = null;
-
-
-    public RemovePostServlet(DataSource dataSource, DBConnectionPool connectionPool){
-        this.dataSource = dataSource;
-        this.connectionPool = connectionPool;
-    }
 
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
@@ -59,11 +48,11 @@ public class RemovePostServlet extends HttpServlet {
 
         int result = 0;
         String query;
-
+        Connection conn = null;
         try {
-            conn = dataSource.getConnection();
-            connectionPool.printStatus();
-            //Statement sqlQuery = connection.createStatement();
+            conn = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
+
             sqlQuery = conn.createStatement();
             if (status == 0) {
                 query = "update post set isDeleted = 1 where id = " + postId + ";";
@@ -83,13 +72,6 @@ public class RemovePostServlet extends HttpServlet {
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            if (sqlQuery != null) {
-                try {
-                    sqlQuery.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
             if (conn != null) {
                 try {
                     conn.close();
@@ -98,6 +80,7 @@ public class RemovePostServlet extends HttpServlet {
                 }
             }
         }
+        Main.connectionPool.printStatus();
     }
 
     private void createResponse(HttpServletResponse response, short status, String message, long postId) throws IOException, SQLException {

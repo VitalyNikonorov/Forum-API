@@ -1,6 +1,7 @@
 package db.user;
 
 import main.DBConnectionPool;
+import main.Main;
 import org.json.JSONObject;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -20,26 +21,18 @@ import java.util.Objects;
 
 public class GetUserDetailsServlet extends HttpServlet {
 
-    private DataSource dataSource;
-    DBConnectionPool connectionPool;
-    Connection conn = null;
-
-    public GetUserDetailsServlet(DataSource dataSource, DBConnectionPool connectionPool){
-        this.dataSource = dataSource;
-        this.connectionPool = connectionPool;
-    }
-
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        Connection conn = null;
         try {
-            conn = dataSource.getConnection();
-            connectionPool.printStatus();
+            conn = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
             response.setContentType("application/json;charset=utf-8");
             String userEmail = request.getParameter("user");
             JSONObject jsonResponse = db.user.UserInfo.getFullUserInfo(conn, userEmail);
             response.getWriter().println(jsonResponse);
         }
         catch (Exception ex){
-            //System.out.println("Other Error in FollowUserServlet.");
+            ex.printStackTrace();
         } finally {
             if (conn != null) {
                 try {
@@ -49,5 +42,6 @@ public class GetUserDetailsServlet extends HttpServlet {
                 }
             }
         }
+        Main.connectionPool.printStatus();
     }
 }

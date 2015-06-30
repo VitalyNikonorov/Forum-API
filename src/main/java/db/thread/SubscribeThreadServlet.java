@@ -1,5 +1,6 @@
 package db.thread;
 
+import main.Main;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -18,9 +19,6 @@ import static db.user.UserInfo.getUserIdByEmail;
  * Created by vitaly on 23.06.15.
  */
 public class SubscribeThreadServlet extends HttpServlet {
-
-    private Connection connection;
-    public SubscribeThreadServlet(Connection connection){ this.connection = connection; }
 
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
@@ -50,15 +48,20 @@ public class SubscribeThreadServlet extends HttpServlet {
 
         int result = 0;
         String query;
+        Connection connection = null;
 
-        int userId = getUserIdByEmail(connection, email);
-        if (userId < 1) {
-            status = 1;
-            message = "There is no such USER";
-        }
-
-        Statement sqlQuery = null;
         try {
+            connection = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
+
+            int userId = getUserIdByEmail(connection, email);
+            if (userId < 1) {
+                status = 1;
+                message = "There is no such USER";
+            }
+
+            Statement sqlQuery = null;
+
             if (status == 0) {
                 sqlQuery = connection.createStatement();
                 query = "INSERT INTO subscribtion VALUES (" + userId + " , " + threadId + ") ;";
@@ -69,10 +72,6 @@ public class SubscribeThreadServlet extends HttpServlet {
                 }
             }
             createResponse(response, status, message, threadId, email);
-            if(sqlQuery != null){
-                sqlQuery.close();
-                sqlQuery = null;
-            }
         } catch (SQLException e) {
             if (e.getErrorCode() == 1062) {
                 JSONObject obj = new JSONObject();
@@ -82,6 +81,14 @@ public class SubscribeThreadServlet extends HttpServlet {
                 response.getWriter().write(obj.toString());
             }
             //e.printStackTrace();
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 

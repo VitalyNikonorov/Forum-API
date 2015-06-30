@@ -1,6 +1,7 @@
 package db.user;
 
 import main.DBConnectionPool;
+import main.Main;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -17,17 +18,8 @@ import java.util.*;
  */
 
 public class UserListPostsServlet extends HttpServlet {
-    private DataSource dataSource;
-    DBConnectionPool connectionPool;
-    Connection conn = null;
-
-    public UserListPostsServlet(DataSource dataSource, DBConnectionPool connectionPool){
-        this.dataSource = dataSource;
-        this.connectionPool = connectionPool;
-    }
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
 
         JSONObject jsonResponse = new JSONObject();
 
@@ -46,10 +38,11 @@ public class UserListPostsServlet extends HttpServlet {
         String since = request.getParameter("since");
 
         // Database
+        Connection conn = null;
         Statement sqlQuery = null;
         try {
-            conn = dataSource.getConnection();
-            connectionPool.printStatus();
+            conn = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
 
             sqlQuery = conn.createStatement();
             ResultSet rs = null;
@@ -106,15 +99,7 @@ public class UserListPostsServlet extends HttpServlet {
             jsonResponse.put("response", listOfResponseMap);
         }
         catch (SQLException ex){
-            System.out.println("SQLException caught");
-            System.out.println("---");
-            while ( ex != null ){
-                System.out.println("Message   : " + ex.getMessage());
-                System.out.println("SQLState  : " + ex.getSQLState());
-                System.out.println("ErrorCode : " + ex.getErrorCode());
-                System.out.println("---");
-                ex = ex.getNextException();
-            }
+            ex.printStackTrace();
         }
         catch (Exception ex){
             System.out.println("Other Error in UserListPostsServlet.");
@@ -134,6 +119,7 @@ public class UserListPostsServlet extends HttpServlet {
                 }
             }
         }
+        Main.connectionPool.printStatus();
         //Database!!!!
         response.getWriter().println(jsonResponse);
     }

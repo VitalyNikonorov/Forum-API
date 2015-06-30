@@ -2,6 +2,7 @@ package db.post;
 
 import db.user.UserInfo;
 import main.DBConnectionPool;
+import main.Main;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -18,15 +19,6 @@ import java.sql.*;
  */
 
 public class UpdatePostServlet extends HttpServlet {
-
-    private DataSource dataSource;
-    DBConnectionPool connectionPool;
-    Connection conn = null;
-
-    public UpdatePostServlet(DataSource dataSource, DBConnectionPool connectionPool){
-        this.dataSource = dataSource;
-        this.connectionPool = connectionPool;
-    }
 
     public void doPost(HttpServletRequest request,
                            HttpServletResponse response) throws ServletException, IOException {
@@ -54,9 +46,10 @@ public class UpdatePostServlet extends HttpServlet {
 
             int result = 0;
         Statement sqlQuery = null;
+        Connection conn = null;
         try {
-            conn = dataSource.getConnection();
-            connectionPool.printStatus();
+            conn = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
             if (status == 0) {
 
                 sqlQuery = conn.createStatement();
@@ -71,17 +64,10 @@ public class UpdatePostServlet extends HttpServlet {
                 message = "There is no such POST";
             }
             try {
-                createResponse(response, status, message, postId);
+                createResponse(conn, response, status, message, postId);
             } catch (SQLException e) {
                 e.printStackTrace();
             } finally {
-                if (sqlQuery != null) {
-                    try {
-                        sqlQuery.close();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-                }
                 if (conn != null) {
                     try {
                         conn.close();
@@ -90,9 +76,10 @@ public class UpdatePostServlet extends HttpServlet {
                     }
                 }
             }
+        Main.connectionPool.printStatus();
         }
 
-        private void createResponse(HttpServletResponse response, short status, String message, long postId) throws IOException, SQLException {
+        private void createResponse(Connection conn, HttpServletResponse response, short status, String message, long postId) throws IOException, SQLException {
             response.setContentType("json;charset=UTF-8");
             response.setHeader("Cache-Control", "no-cache");
             response.setStatus(HttpServletResponse.SC_OK);
@@ -100,7 +87,7 @@ public class UpdatePostServlet extends HttpServlet {
             JSONObject obj = new JSONObject();
             JSONObject data = null;
             if (status == 0) {
-                data = getPostDetails((int) postId);
+                data = getPostDetails(conn, (int) postId);
                 if (data == null) {
                     status = 1;
                     message = "There is no such POST";
@@ -116,7 +103,7 @@ public class UpdatePostServlet extends HttpServlet {
         }
 
     //TODO - опять копирую((( -  в функцию надо!!!
-    public JSONObject getPostDetails(int id) throws IOException, SQLException {
+    public JSONObject getPostDetails(Connection conn, int id) throws IOException, SQLException {
 
         JSONObject data = new JSONObject();
         ResultSet resultSet;
@@ -155,25 +142,9 @@ public class UpdatePostServlet extends HttpServlet {
             }
 
         }catch(SQLException ex) {
-            System.out.println("SQLException caught");
-            System.out.println("---");
-            /*while (ex != null) {
-                System.out.println("Message   : " + ex.getMessage());
-                System.out.println("SQLState  : " + ex.getSQLState());
-                System.out.println("ErrorCode : " + ex.getErrorCode());
-                System.out.println(ex.getMessage());
-            }
-            System.out.println("---");*/
-            ex = ex.getNextException();
-        } finally {
-            if (pstmt != null) {
-                try {
-                    pstmt.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
+            ex.printStackTrace();
         }
+
         return data;
     }
 }

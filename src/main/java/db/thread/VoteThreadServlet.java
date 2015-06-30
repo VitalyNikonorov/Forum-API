@@ -1,6 +1,7 @@
 package db.thread;
 
 import db.user.UserInfo;
+import main.Main;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -15,9 +16,6 @@ import java.sql.*;
  * Created by vitaly on 23.06.15.
  */
 public class VoteThreadServlet extends HttpServlet {
-
-    private Connection connection;
-    public VoteThreadServlet(Connection connection){ this.connection = connection; }
 
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
@@ -48,8 +46,11 @@ public class VoteThreadServlet extends HttpServlet {
 
         int result = 0;
         String query;
-
+        Connection connection = null;
         try {
+            connection = Main.dataSource.getConnection();
+            Main.connectionPool.printStatus();
+
             Statement sqlQuery = connection.createStatement();
             if (status == 0) {
                 String likes = vote > 0 ? "likes" : "dislikes";
@@ -61,15 +62,21 @@ public class VoteThreadServlet extends HttpServlet {
                 status = 1;
                 message = "There is no such thread";
             }
-            createResponse(response, status, message, threadId);
-            sqlQuery.close();
-            sqlQuery = null;
+            createResponse(connection, response, status, message, threadId);
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
-    private void createResponse(HttpServletResponse response, short status, String message, long threadId) throws IOException, SQLException {
+    private void createResponse(Connection connection, HttpServletResponse response, short status, String message, long threadId) throws IOException, SQLException {
 
         response.setContentType("json;charset=UTF-8");
         response.setHeader("Cache-Control", "no-cache");
@@ -77,7 +84,7 @@ public class VoteThreadServlet extends HttpServlet {
 
         JSONObject data = null;
         if (status == 0) {
-            data = getThreadDetailsById((int)threadId, false, false);
+            data = getThreadDetailsById(connection, (int)threadId, false, false);
         }
         if (data == null) {
             status = 1;
@@ -95,9 +102,7 @@ public class VoteThreadServlet extends HttpServlet {
 
     //TODO - вынести в вфункцию
 
-    public JSONObject getThreadDetailsById(int id, boolean user, boolean forum) throws IOException, SQLException{
-        //Остановился тут!!!!!!!
-
+    public JSONObject getThreadDetailsById(Connection connection, int id, boolean user, boolean forum) throws IOException, SQLException{
 
         ResultSet resultSet;
         ResultSet resultSetCount;
@@ -135,23 +140,8 @@ public class VoteThreadServlet extends HttpServlet {
                         forumData.put("short_name", resultSetForum.getString("short_name"));
                     }
 
-                    pstmtForum.close();
-                    pstmtForum = null;
-
-                    resultSetForum.close();
-                    resultSetForum = null;
-
                 }catch(SQLException ex) {
-                    System.out.println("SQLException caught");
-                    System.out.println("---");
-                    while (ex != null) {
-                        System.out.println("Message   : " + ex.getMessage());
-                        System.out.println("SQLState  : " + ex.getSQLState());
-                        System.out.println("ErrorCode : " + ex.getErrorCode());
-                        System.out.println(ex.getMessage());
-                    }
-                    System.out.println("---");
-                    ex = ex.getNextException();
+                    ex.printStackTrace();
                 }
                 data.put("forum", forumData);
 
@@ -176,19 +166,6 @@ public class VoteThreadServlet extends HttpServlet {
             String message = "There is no thread with such id!";
             data.put("error", message);
         }
-
-        pstmt.close();
-        pstmt = null;
-
-        resultSet.close();
-        resultSet = null;
-
-        pstmtCountPosts.close();
-        pstmtCountPosts = null;
-
-        resultSetCount.close();
-        resultSetCount = null;
-
         return data;
     }
 }
